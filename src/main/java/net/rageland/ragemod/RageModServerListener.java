@@ -6,6 +6,7 @@ import org.bukkit.event.server.ServerListener;
 import org.bukkit.plugin.Plugin;
 
 import com.iConomy.iConomy;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 
 public class RageModServerListener extends ServerListener {
 
