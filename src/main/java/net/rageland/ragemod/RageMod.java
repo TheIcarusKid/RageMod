@@ -125,10 +125,10 @@ public class RageMod extends JavaPlugin {
     }
     
     public void setUpConfigfile() {
-    	write("dbUsername", "grondal_org");
-    	write("dbPassword", "6M6ggQHd");
-    	write("dbAddress", "grondal.org.mysql");
-    	write("dbName", "grondal_org");
+    	write("dbUsername", "username");
+    	write("dbPassword", "passsword");
+    	write("dbAddress", "address");
+    	write("dbName", "database");
     	write("Towncost", "500");
     	write("dbPort", "3306");
     }
