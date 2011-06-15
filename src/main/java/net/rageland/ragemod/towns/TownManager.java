@@ -45,11 +45,13 @@ public class TownManager {
 				BlockVector min = new BlockVector(xPos - 40, 0, zPos - 40);				
 				BlockVector max = new BlockVector(xPos + 40, 128, zPos + 40);
 				
+				/* Obsolete due to removal of WorldGuard.
 				ProtectedRegion region = new ProtectedCuboidRegion(name, min, max);
 				
 				plugin.worldGuard.getGlobalRegionManager().get(player.getWorld()).addRegion(region);
 				String[] owners = {player.getName()};
 				RegionUtil.addToDomain(region.getOwners(), owners, 0);
+				*/
 			} else {
 				if(errorMsg == TOWNERROR.NAME) {
 					player.sendMessage("Name of town already in use.");

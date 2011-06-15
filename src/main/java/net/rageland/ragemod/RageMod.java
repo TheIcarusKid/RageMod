@@ -36,7 +36,6 @@ public class RageMod extends JavaPlugin {
     private TownManager townManager;
     public int townCost;
     public iConomy iConomy;
-    public WorldGuardPlugin worldGuard;
     public static String mainDirectory = "plugins/RageMod";
     public static PermissionHandler permissionHandler;
     public File file = new File(mainDirectory + File.separator + "config.yml");
@@ -48,8 +47,7 @@ public class RageMod extends JavaPlugin {
     	townManager = new TownManager(this);
     	playerListener = new RageModPlayerListener(this);
     	blockListener = new RageModBlockListener(this);  
-    	iConomy = null;
-    	worldGuard = null;  
+    	iConomy = null; 
     	missingPermissions = "You don't have permissions to execute that command.";
     	
     	new File(mainDirectory).mkdir();

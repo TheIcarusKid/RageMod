@@ -35,16 +35,6 @@ public class RageModServerListener extends ServerListener {
                 }
             }
         }
-        if(plugin.worldGuard == null) {
-        	Plugin worldGuard = plugin.getServer().getPluginManager().getPlugin("WorldGuard");
-        	
-        	if(worldGuard != null) {
-        		if(worldGuard.isEnabled() && worldGuard.getClass().getName().equals("com.sk89q.worldguard.bukkit.WorldGuardPlugin")) {
-        			plugin.worldGuard = (WorldGuardPlugin) worldGuard;
-        			System.out.println("RageMod hooked into WorldGuard.");
-        		}
-        	}
-        }
         
     } // end onPluginEnable
 	
