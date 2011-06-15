@@ -19,6 +19,8 @@ import net.rageland.ragemod.towns.TownManager;
 import com.iConomy.*;
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+
 import org.bukkit.plugin.Plugin;
 
 /**
@@ -36,6 +38,7 @@ public class RageMod extends JavaPlugin {
     private TownManager townManager;
     public int townCost;
     public iConomy iConomy;
+    public WorldGuardPlugin worldGuard;
     public static String mainDirectory = "plugins/RageMod";
     public static PermissionHandler permissionHandler;
     public File file = new File(mainDirectory + File.separator + "config.yml");
@@ -54,12 +57,13 @@ public class RageMod extends JavaPlugin {
         if(!file.exists()){
             try {
                 file.createNewFile();
+                setUpConfigfile(); 
                 
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-        }    
-        setUpConfigfile(); 
+        }   
+        
     }
     
     

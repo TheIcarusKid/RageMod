@@ -8,5 +8,6 @@
 	<classpathentry kind="lib" path="D:/Development/JarLibraries/WorldEdit.jar"/>
 	<classpathentry kind="lib" path="D:/Development/JarLibraries/iConomy.jar"/>
 	<classpathentry kind="lib" path="D:/Development/JarLibraries/Permissions.jar"/>
+	<classpathentry kind="lib" path="D:/Development/JarLibraries/worldguard-5.0.0-SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
