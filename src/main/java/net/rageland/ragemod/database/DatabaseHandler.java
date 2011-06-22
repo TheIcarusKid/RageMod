@@ -1,5 +1,7 @@
 package net.rageland.ragemod.database;
 
+// Test commit
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
