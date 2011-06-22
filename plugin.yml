@@ -1,0 +1,7 @@
+name: RageMod
+main: net.rageland.ragemod.RageMod
+version: 0.1
+commands:
+  basic:
+    description: N/A
+    usage: /basic

@@ -11,10 +11,10 @@ import org.bukkit.event.block.BlockPhysicsEvent;
  * RageMod block listener
  * @author BrokenTomato
  */
-public class RageModBlockListener extends BlockListener {
+public class RMBlockListener extends BlockListener {
     private final RageMod plugin;
 
-    public RageModBlockListener(final RageMod plugin) {
+    public RMBlockListener(final RageMod plugin) {
         this.plugin = plugin;
     }
 

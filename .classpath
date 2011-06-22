@@ -4,10 +4,10 @@
 	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5"/>
 	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER"/>
-	<classpathentry kind="lib" path="D:/Development/JarLibraries/craftbukkit-0.0.1-SNAPSHOT.jar"/>
-	<classpathentry kind="lib" path="D:/Development/JarLibraries/WorldEdit.jar"/>
-	<classpathentry kind="lib" path="D:/Development/JarLibraries/iConomy.jar"/>
-	<classpathentry kind="lib" path="D:/Development/JarLibraries/Permissions.jar"/>
-	<classpathentry kind="lib" path="D:/Development/JarLibraries/worldguard-5.0.0-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="E:/Homebrew/bukkit-0.0.1-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="E:/Homebrew/iConomy.jar"/>
+	<classpathentry kind="lib" path="E:/Homebrew/WorldGuard.jar"/>
+	<classpathentry kind="lib" path="E:/Homebrew/Permissions.jar"/>
+	<classpathentry kind="lib" path="E:/Homebrew/worldedit-4.6/WorldEdit.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

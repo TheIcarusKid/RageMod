@@ -16,10 +16,11 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.util.config.Configuration;
 import net.rageland.ragemod.database.DatabaseHandler;
 import net.rageland.ragemod.towns.TownManager;
+import net.rageland.ragemod.database.RageDB;
 import com.iConomy.*;
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
-import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+//import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 
 import org.bukkit.plugin.Plugin;
 
@@ -29,27 +30,29 @@ import org.bukkit.plugin.Plugin;
  * @author BrokenTomato
  */
 public class RageMod extends JavaPlugin {
-    private final RageModPlayerListener playerListener;
-    private final RageModBlockListener blockListener;
-    private final RageModServerListener serverListener;
+    private final RMPlayerListener playerListener;
+    private final RMBlockListener blockListener;
+    private final RMServerListener serverListener;
     private final HashMap<Player, Boolean> debugees = new HashMap<Player, Boolean>();
     private Server server; 
     private PluginManager pluginManager;
     private TownManager townManager;
     public int townCost;
     public iConomy iConomy;
-    public WorldGuardPlugin worldGuard;
+ //   public WorldGuardPlugin worldGuard;
     public static String mainDirectory = "plugins/RageMod";
     public static PermissionHandler permissionHandler;
     public File file = new File(mainDirectory + File.separator + "config.yml");
     private String missingPermissions;
     public DatabaseHandler dbhandler = null;
     
+    public static RageDB Database = null;  //DC 6-21-11
+    
     public RageMod() {
-    	serverListener = new RageModServerListener(this);
+    	serverListener = new RMServerListener(this);
     	townManager = new TownManager(this);
-    	playerListener = new RageModPlayerListener(this);
-    	blockListener = new RageModBlockListener(this);  
+    	playerListener = new RMPlayerListener(this);
+    	blockListener = new RMBlockListener(this);  
     	iConomy = null; 
     	missingPermissions = "You don't have permissions to execute that command.";
     	
@@ -76,8 +79,17 @@ public class RageMod extends JavaPlugin {
         pluginManager.registerEvent(Event.Type.PLUGIN_ENABLE, this.serverListener, Event.Priority.Normal, this);
         pluginManager.registerEvent(Event.Type.PLUGIN_DISABLE, this.serverListener, Event.Priority.Normal, this);
         
+        pluginManager.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.Normal, this);
+        
         setupPermissions();
         System.out.println( "RageMod is enabled!" );
+        
+        // Initialize the database
+    	Database = new RageDB(this);
+        
+        // Load the HashMaps for DB data
+        PlayerTowns.GetInstance().LoadPlayerTowns();
+        Players.GetInstance();
     }
     
     public void onDisable() {        
@@ -91,7 +103,7 @@ public class RageMod extends JavaPlugin {
     			sender.sendMessage(missingPermissions);
     			return true; // Nothing happens, the user don't have permissions
     		}
-    		townManager.addTown(args[0], (Player) sender);	
+ //   		townManager.addTown(args[0], (Player) sender);	
 	    	return true;
     	}       	
     	return false;

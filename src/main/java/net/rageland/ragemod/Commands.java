@@ -1,4 +1,4 @@
-package icarus.RageMod;
+package net.rageland.ragemod;
 
 import org.bukkit.entity.Player;
 

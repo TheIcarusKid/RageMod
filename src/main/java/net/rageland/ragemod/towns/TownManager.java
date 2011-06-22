@@ -8,10 +8,10 @@ import net.rageland.ragemod.RageMod;
 import net.rageland.ragemod.database.DatabaseHandler;
 
 import com.iConomy.system.Account;
-import com.sk89q.worldedit.BlockVector;
-import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-import com.sk89q.worldguard.util.RegionUtil;
+//import com.sk89q.worldedit.BlockVector;
+//import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
+//import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+//import com.sk89q.worldguard.util.RegionUtil;
 
 public class TownManager {
 	
@@ -29,41 +29,41 @@ public class TownManager {
 	 * @param name
 	 * @param player
 	 */	
-	public void addTown(String name, Player player) {
-		
-		player.sendMessage("Test");
-		int xPos = player.getLocation().getBlockX();
-		int zPos = player.getLocation().getBlockZ();
-		
-		Account account = plugin.iConomy.getAccount(player.getName());
-		
-		if(account != null) {
-			if(validTown(name, zPos, xPos)) {
-				
-				if(!account.getHoldings().hasOver(plugin.townCost)) {
-					player.sendMessage("You did not have enough coins to establish a town!");
-					return;
-				}
-				account.getHoldings().subtract(plugin.townCost);
-				BlockVector min = new BlockVector(xPos - 40, 0, zPos - 40);				
-				BlockVector max = new BlockVector(xPos + 40, 128, zPos + 40);
-				
-				ProtectedRegion region = new ProtectedCuboidRegion(name, min, max);
-				
-				plugin.worldGuard.getGlobalRegionManager().get(player.getWorld()).addRegion(region);
-				String[] owners = {player.getName()};
-				RegionUtil.addToDomain(region.getOwners(), owners, 0);
-				
-			} else {
-				if(errorMsg == TOWNERROR.NAME) {
-					player.sendMessage("Name of town already in use.");
-				} else if(errorMsg == TOWNERROR.POSITION) {
-					player.sendMessage("Position is to close to another town / spawn.");
-				}
-				return;
-			}
-		}
-	}
+//	public void addTown(String name, Player player) {
+//		
+//		player.sendMessage("Test");
+//		int xPos = player.getLocation().getBlockX();
+//		int zPos = player.getLocation().getBlockZ();
+//		
+//		Account account = plugin.iConomy.getAccount(player.getName());
+//		
+//		if(account != null) {
+//			if(validTown(name, zPos, xPos)) {
+//				
+//				if(!account.getHoldings().hasOver(plugin.townCost)) {
+//					player.sendMessage("You did not have enough coins to establish a town!");
+//					return;
+//				}
+//				account.getHoldings().subtract(plugin.townCost);
+//				BlockVector min = new BlockVector(xPos - 40, 0, zPos - 40);				
+//				BlockVector max = new BlockVector(xPos + 40, 128, zPos + 40);
+//				
+//				ProtectedRegion region = new ProtectedCuboidRegion(name, min, max);
+//				
+////				plugin.worldGuard.getGlobalRegionManager().get(player.getWorld()).addRegion(region);
+//				String[] owners = {player.getName()};
+//				RegionUtil.addToDomain(region.getOwners(), owners, 0);
+//				
+//			} else {
+//				if(errorMsg == TOWNERROR.NAME) {
+//					player.sendMessage("Name of town already in use.");
+//				} else if(errorMsg == TOWNERROR.POSITION) {
+//					player.sendMessage("Position is to close to another town / spawn.");
+//				}
+//				return;
+//			}
+//		}
+//	}
 	
 	
 	private boolean validTown(String name, int zPos, int xPos) {

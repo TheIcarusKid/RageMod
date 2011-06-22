@@ -8,11 +8,11 @@ import org.bukkit.plugin.Plugin;
 import com.iConomy.iConomy;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 
-public class RageModServerListener extends ServerListener {
+public class RMServerListener extends ServerListener {
 
 	private final RageMod plugin;
 	
-	public RageModServerListener(RageMod instance) {
+	public RMServerListener(RageMod instance) {
 		this.plugin = instance;
 	}
 	
@@ -36,16 +36,16 @@ public class RageModServerListener extends ServerListener {
                 }
             }
         }
-        if(plugin.worldGuard == null) {
-        	Plugin worldGuard = plugin.getServer().getPluginManager().getPlugin("WorldGuard");
-        	
-        	if(worldGuard != null) {
-        		if(worldGuard.isEnabled() && worldGuard.getClass().getName().equals("com.sk89q.worldguard.bukkit.WorldGuardPlugin")) {
-        			plugin.worldGuard = (WorldGuardPlugin) worldGuard;
-        			System.out.println("RageMod hooked into WorldGuard.");
-        		}
-        	}
-        }
+//        if(plugin.worldGuard == null) {
+//        	Plugin worldGuard = plugin.getServer().getPluginManager().getPlugin("WorldGuard");
+//        	
+//        	if(worldGuard != null) {
+//        		if(worldGuard.isEnabled() && worldGuard.getClass().getName().equals("com.sk89q.worldguard.bukkit.WorldGuardPlugin")) {
+//        			plugin.worldGuard = (WorldGuardPlugin) worldGuard;
+//        			System.out.println("RageMod hooked into WorldGuard.");
+//        		}
+//        	}
+//        }
         
     } // end onPluginEnable
 	
