@@ -9,25 +9,27 @@ import org.bukkit.entity.Player;
 import org.bukkit.Server;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event;
-import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.PluginLoader;
+import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.util.config.Configuration;
-import net.rageland.ragemod.database.DatabaseHandler;
-import net.rageland.ragemod.towns.TownManager;
-import net.rageland.ragemod.database.RageDB;
+
+import net.rageland.ragemod.data.PlayerData;
+import net.rageland.ragemod.data.PlayerTowns;
+import net.rageland.ragemod.data.Players;
 import com.iConomy.*;
-import com.nijiko.permissions.PermissionHandler;
-import com.nijikokun.bukkit.Permissions.Permissions;
+//import com.nijiko.permissions.PermissionHandler;
+//import com.nijikokun.bukkit.Permissions.Permissions;
 //import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+
+// TODO: Update all method names to lowercase to match Java convention - research first :(
 
 import org.bukkit.plugin.Plugin;
 
 /**
  * RageMod for Bukkit
  *
- * @author BrokenTomato
+ * @author TheIcarusKid
  */
 public class RageMod extends JavaPlugin {
     private final RMPlayerListener playerListener;
@@ -36,43 +38,34 @@ public class RageMod extends JavaPlugin {
     private final HashMap<Player, Boolean> debugees = new HashMap<Player, Boolean>();
     private Server server; 
     private PluginManager pluginManager;
-    private TownManager townManager;
     public int townCost;
     public iConomy iConomy;
  //   public WorldGuardPlugin worldGuard;
     public static String mainDirectory = "plugins/RageMod";
-    public static PermissionHandler permissionHandler;
+//    public static PermissionHandler permissionHandler;
     public File file = new File(mainDirectory + File.separator + "config.yml");
     private String missingPermissions;
-    public DatabaseHandler dbhandler = null;
+    //public DatabaseHandler dbhandler = null;
     
-    public static RageDB Database = null;  //DC 6-21-11
+    // Static utility classes
+    public static RageConfig Config = null;
+    public static RageDB Database = null;  
+    public static RageZones Zones = null;
     
     public RageMod() {
     	serverListener = new RMServerListener(this);
-    	townManager = new TownManager(this);
     	playerListener = new RMPlayerListener(this);
     	blockListener = new RMBlockListener(this);  
     	iConomy = null; 
     	missingPermissions = "You don't have permissions to execute that command.";
     	
-    	new File(mainDirectory).mkdir();
-        if(!file.exists()){
-            try {
-                file.createNewFile();
-                setUpConfigfile(); 
-                
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }   
+
         
     }
     
     
-    public void onEnable() {    	
-    	    
-        loadSettingsFromConfig();        
+    public void onEnable() 
+    {    		           
     	server = this.getServer();
         pluginManager = server.getPluginManager();
         
@@ -80,16 +73,26 @@ public class RageMod extends JavaPlugin {
         pluginManager.registerEvent(Event.Type.PLUGIN_DISABLE, this.serverListener, Event.Priority.Normal, this);
         
         pluginManager.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.PLAYER_JOIN, playerListener, Priority.Normal, this);
         
-        setupPermissions();
+//        setupPermissions();
         System.out.println( "RageMod is enabled!" );
         
-        // Initialize the database
-    	Database = new RageDB(this);
+        // Initialize the static classes - make sure to initialize Config first as ther other constuctors rely on it
+        Config = new RageConfig();
+        Database = new RageDB(this);
+        Zones = new RageZones(this);
+    	
         
         // Load the HashMaps for DB data
         PlayerTowns.GetInstance().LoadPlayerTowns();
         Players.GetInstance();
+        
+        // Run some tests because of stupid MC validation preventing me from testing in-game >:(
+        runTests();
+        
+        
     }
     
     public void onDisable() {        
@@ -99,10 +102,10 @@ public class RageMod extends JavaPlugin {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {    	       	
     	if(command.getName().equalsIgnoreCase("claimtown") && sender instanceof Player) {
     		
-    		if(!this.permissionHandler.has((Player) sender, "ragemod.commands.claimtown") ){
-    			sender.sendMessage(missingPermissions);
-    			return true; // Nothing happens, the user don't have permissions
-    		}
+//    		if(!this.permissionHandler.has((Player) sender, "ragemod.commands.claimtown") ){
+//    			sender.sendMessage(missingPermissions);
+//    			return true; // Nothing happens, the user don't have permissions
+//    		}
  //   		townManager.addTown(args[0], (Player) sender);	
 	    	return true;
     	}       	
@@ -129,53 +132,39 @@ public class RageMod extends JavaPlugin {
         }
     }
     
-    public void write(String root, Object x){ //just so you know, you may want to write a boolean, integer or double to the file as well, therefore u wouldnt write it to the file as "String" you would change it to something else
-    	Configuration config = load();
-        config.setProperty(root, x);
-        config.save();
-    }
-
-    public  String read(String root){
-    	Configuration config = load();
-        return config.getString(root);
-    }
     
-    public void setUpConfigfile() {
-    	write("dbUsername", "username");
-    	write("dbPassword", "passsword");
-    	write("dbAddress", "address");
-    	write("dbName", "database");
-    	write("Towncost", "500");
-    	write("dbPort", "3306");
-    }
-    
-    public void loadSettingsFromConfig() {
-    	// Setting up the SQL connection
-    	dbhandler = new DatabaseHandler(
-    			read("dbAddress"), 
-    			Integer.parseInt(read("dbPort")), 
-    			read("dbName"),
-    			read("dbUsername"), 
-    			read("dbPassword"));
-    	
-    	// Temporary towncost
-    	townCost = Integer.parseInt(read("Towncost"));
-    }
 
     public void setDebugging(final Player player, final boolean value) {
         debugees.put(player, value);
     }
     
-    private void setupPermissions() {
-        Plugin permissionsPlugin = this.getServer().getPluginManager().getPlugin("Permissions");
-
-        if (this.permissionHandler == null) {
-            if (permissionsPlugin != null) {
-                this.permissionHandler = ((Permissions) permissionsPlugin).getHandler();
-            } else {
-                
-            }
-        }
+//    private void setupPermissions() {
+//        Plugin permissionsPlugin = this.getServer().getPluginManager().getPlugin("Permissions");
+//
+//        if (this.permissionHandler == null) {
+//            if (permissionsPlugin != null) {
+//                this.permissionHandler = ((Permissions) permissionsPlugin).getHandler();
+//            } else {
+//                
+//            }
+//        }
+//    }
+    
+    private void runTests()
+    {
+    	//Location testLoc1 = new Location(this.getServer().getWorld("world"), 100, 64, -100);
+    	String playerName = "RedPlayer1";
+    	
+    	Players.PlayerLogin(playerName);
+    	PlayerData playerData = Players.Get(playerName);
+    	
+    	System.out.println(playerName + "'s town is " + playerData.TownName);
+    	
+    	System.out.println("Players size: " + Players.size());
+    	
+    	
+    	
+    	
     }
 }
 
