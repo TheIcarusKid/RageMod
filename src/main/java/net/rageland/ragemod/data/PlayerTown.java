@@ -2,21 +2,33 @@ package net.rageland.ragemod.data;
 
 import java.util.Date;
 
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+
 import net.rageland.ragemod.RageConfig;
 import net.rageland.ragemod.RageMod;
+
+// TODO: Make this inherit from Region2D, along with NPCTown (make another class in between)
+
+// TODO: Figure out how to make the constructor more graceful and safer - the current buildRegion() setup is asking for null pointer errors
 
 public class PlayerTown implements Comparable<PlayerTown> {
 	
 	// PlayerTowns table
-	public int ID_PlayerTown;
-	public String TownName;
-	public Location2D Coords;
-	public String Faction;
-	public float TreasuryBalance;
-	public Date BankruptDate;
-	public String Mayor;				// Name of mayor
+	public int id_PlayerTown;
+	public String townName;
+	public Location2D centerPoint;
+	public int id_Faction;
+	public float treasuryBalance;
+	public Date bankruptDate;
+	public String mayor;					// Name of mayor
 		
-	public int TownLevel;				// Corresponds to the HashMap TownLevels in Config
+	public TownLevel townLevel;				// Corresponds to the HashMap TownLevels in Config
+	
+	public Region2D region;
+	public World world;
 	
 	
 	// Constructor: All data
@@ -46,36 +58,103 @@ public class PlayerTown implements Comparable<PlayerTown> {
 	// Implementing Comparable for sorting purposes
 	public int compareTo(PlayerTown otherTown)
 	{
-		return otherTown.TownLevel - this.TownLevel;
+		return otherTown.townLevel.Level - this.townLevel.Level;
+	}
+	
+	// Comparison
+	public boolean equals(PlayerTown otherTown)
+	{
+		return otherTown.id_PlayerTown == this.id_PlayerTown;
+	}
+	
+	// Creates the region
+	public void buildRegion()
+	{
+		region = new Region2D(centerPoint.getX() - (townLevel.Size / 2), centerPoint.getZ() + (townLevel.Size / 2),
+							  centerPoint.getX() + (townLevel.Size / 2), centerPoint.getZ() - (townLevel.Size / 2));
 	}
 	
 	// Checks to see whether the town is already at maximum level; used by /townupgrade
-	public boolean IsAtMaxLevel()
+	public boolean isAtMaxLevel()
 	{
-		if( Faction.equals("Neutral") )
-			return TownLevel >= RageConfig.Town_MaxLevel_Neutral;
+		if( id_Faction == 0 )
+			return townLevel.Level >= RageConfig.Town_MaxLevel_Neutral;
 		else
-			return TownLevel >= RageConfig.Town_MaxLevel_Faction;
+			return townLevel.Level >= RageConfig.Town_MaxLevel_Faction;
 	}
 	
-	public boolean IsCapitol()
+	public boolean isCapitol()
 	{
-		return RageConfig.TownLevels.get(TownLevel).IsCapitol;
+		return RageConfig.TownLevels.get(townLevel).IsCapitol;
 	}
 
 	// Checks to see if the town already has its maximum number of residents
-	public boolean IsFull() 
+	public boolean isFull() 
 	{
-		int numberOfResidents = RageMod.Database.CountResidents(TownName);
+		int numberOfResidents = RageMod.Database.countResidents(townName);
 		
-		return numberOfResidents >= RageConfig.TownLevels.get(TownLevel).MaxResidents;
+		return numberOfResidents >= townLevel.MaxResidents;
 	}
 	
 	// Returns all of the info for the current level
-	public TownLevel GetLevel()
+	public TownLevel getLevel()
 	{
-		return RageConfig.TownLevels.get(TownLevel);
+		return townLevel;
 	}
+	
+	// Returns whether or not the specified location is inside the region
+	public boolean isInside(Location location)
+	{
+		return region.isInside(location);
+	}
+	
+	// Puts a border of cobblestone on the edges of the town
+	public void createBorder()
+	{
+		int x, z;
+		
+		for (x = (int)region.nwCorner.getX(); x <= (int)region.seCorner.getX(); x++) 
+		{
+            // North Wall
+			z = (int)region.nwCorner.getZ();
+			placeOverlay(x, z);
+			
+			// South Wall
+			z = (int)region.seCorner.getZ();
+			placeOverlay(x, z);
+        }
+		
+		for (z = (int)region.nwCorner.getZ(); z >= (int)region.seCorner.getZ(); z--) 
+        {
+			// West Wall
+			x = (int)region.nwCorner.getX();
+			placeOverlay(x, z);
+			
+			// East Wall
+			x = (int)region.seCorner.getX();
+			placeOverlay(x, z);
+        }
+	}
+	
+	// Part of createBorder()
+	private void placeOverlay(int x, int z)
+	{
+		for (int y = 127; y >= 1; y--) 
+        {
+            int upperType = world.getBlockTypeIdAt(x, y, z);
+            int lowerType = world.getBlockTypeIdAt(x, y-1, z);
+            
+            if( upperType == 0 && lowerType != 0 )
+            {
+            	if( Material.getMaterial(lowerType) != Material.LEAVES 
+            		&& Material.getMaterial(lowerType) != Material.TORCH)
+            		world.getBlockAt(x, y, z).setType(Material.COBBLESTONE);
+            	return;
+            }
+        }
+	}
+	
+	
 	
 	
 	

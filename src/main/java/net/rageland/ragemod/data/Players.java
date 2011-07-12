@@ -24,11 +24,8 @@ public class Players {
     // Creates a new Player record if one does not exist
     public static PlayerData PlayerLogin(String playerName)
     {
-    	PlayerData playerData = RageMod.Database.PlayerLogin(playerName);
+    	PlayerData playerData = RageMod.Database.playerLogin(playerName);
     	players.put(playerName, playerData);
-    	
-    	// DEBUG
-    	System.out.println("Players size: " + players.size());
     	
     	return playerData;
     }
@@ -41,27 +38,26 @@ public class Players {
     	else
     	{
     		System.out.println("DB fetch called for player: " + playerName);
-    		return RageMod.Database.PlayerFetch(playerName);
+    		return RageMod.Database.playerFetch(playerName);
     	}
     }
     
     // Updates the player's info in memory
     public static void Update(PlayerData playerData)
     {
-    	if( players.containsKey(playerData.Name) )
+    	if( players.containsKey(playerData.name) )
     	{
-    		players.put(playerData.Name, playerData);
+    		players.put(playerData.name, playerData);
     	}
     	else
     	{
-    		System.out.println("Players.Put called on invalid value: " + playerData.Name);
+    		System.out.println("Players.Put called on invalid value: " + playerData.name);
     	}
     }
     
     // For debugging - returns the number of players loaded into memory
     public static int size()
     {
-    	
     	return players.size();
     }
 		

@@ -2,6 +2,8 @@ package net.rageland.ragemod;
 
 import java.util.HashMap;
 
+import org.bukkit.ChatColor;
+
 import net.rageland.ragemod.data.TownLevel;
 
 // Stores and loads configuration values
@@ -11,6 +13,9 @@ public class RageConfig {
 	 *  - Faction info?
 	 * 
 	 */
+	
+	// General settings
+	public static String ServerName = "Rageland";
 	
 	// Database settings
 	public static String DB_URL = "jdbc:mysql://localhost:3306/";
@@ -25,22 +30,41 @@ public class RageConfig {
     public static int Town_MinDistanceSpawn = 1000;  // This leaves the issue of towns hanging into the neutral zone
     public static int Town_MaxLevel_Neutral = 4;
     public static int Town_MaxLevel_Faction = 5;
+    public static int Town_DistanceBetweenBeds = 6;
     public static HashMap<Integer, TownLevel> TownLevels;
     
     // Zone settings
-    public static String ZoneA_Name = "Neutral Zone";
-    public static int ZoneA_Border = 100;  // Distance from spawn
-    public static String ZoneB_Name = "War Zone";
-    public static int ZoneB_Border = 200;  // Distance from spawn
+    public static String ZoneA_Name = "the Neutral Zone";
+    public static int ZoneA_Border = 1000;  // Distance from spawn
+    public static String ZoneB_Name = "the War Zone";
+    public static int ZoneB_Border = 2000;  // Distance from spawn
     public static String ZoneC_Name = "The Wilds";
-    public static int ZoneC_Border = 250;  // Distance from spawn
+    public static int ZoneC_Border = 2500;  // Distance from spawn
 
-    // Capitol/lot settings
-    public static int Lot_XOffset = -100;			// How to convert the web X coordinates to in-game coords
-    public static int Lot_ZOffset = -200;
+    // Lot settings
+    public static int Lot_XOffset = -384;			// How to convert the web X coordinates to in-game coords
+    public static int Lot_ZOffset = 144;
     public static int Lot_Multiplier = 16;			// The lot grid is based on 16x16 chunks
-
+    public static int Lot_CoalPrice = 10;			// Price for Coal-level member lot in USD
+    public static int Lot_IronPrice = 20;			// Price for Iron-level member lot in USD
+    public static int Lot_GoldPrice = 30;			// Price for Gold-level member lot in USD
+    public static int Lot_DiamondPrice = 40;		// Price for Diamond-level member lot in USD
     
+    // Capitol settings
+    public static int Capitol_X1a = -384;			// The NW corner of region A for capitol
+    public static int Capitol_Z1a = 144;
+    public static int Capitol_X2a = 100;			// The SE corner of region A for capitol
+    public static int Capitol_Z2a = -244;
+    public static String Capitol_Name = ChatColor.DARK_GREEN + "Rage City";
+    
+    // Cooldowns (in seconds)
+    public static int Cooldown_Spawn = 30;
+    public static int Cooldown_Home = 30;
+    
+    // Faction settings
+    public static int Faction_BaseJoinCost = 100;		// Initial cost in coins to join a faction
+    public static int Faction_JoinCostIncrease = 10; 	// Amount the join cost will go up due to population imbalance
+
     
 
     private static volatile RageConfig instance;
@@ -105,7 +129,7 @@ public class RageConfig {
     	townLevel.MinimumBalance = 500;
     	townLevel.MaxResidents = 25;
     	townLevel.MaxNPCs = 4;
-    	TownLevels.put(3, townLevel);
+    	TownLevels.put(4, townLevel);
     	
     	townLevel = new TownLevel();
     	townLevel.Level = 5;
@@ -117,9 +141,10 @@ public class RageConfig {
     	townLevel.MaxResidents = 50;
     	townLevel.MaxNPCs = 6;
     	townLevel.IsCapitol = true;
-    	TownLevels.put(3, townLevel);
+    	TownLevels.put(5, townLevel);
     	
     	
     }
 
+    
 }

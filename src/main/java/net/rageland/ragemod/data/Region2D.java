@@ -6,8 +6,8 @@ import org.bukkit.Location;
 public class Region2D 
 {
 	
-	private Location2D nwCorner;
-	private Location2D seCorner;
+	public Location2D nwCorner;
+	public Location2D seCorner;
 	
 	public Region2D (Location2D _nwCorner, Location2D _seCorner)
 	{
@@ -36,8 +36,8 @@ public class Region2D
 	// Tests to see whether the current Location is inside the region
 	public boolean isInside(Location loc)
 	{
-		return ((loc.getX() >= nwCorner.getX() && loc.getX() < (seCorner.getX() + 1)) &&
-				(loc.getZ() >= nwCorner.getZ() && loc.getZ() < (seCorner.getZ() + 1)));
+		return ((loc.getX() >= nwCorner.getX() && loc.getX() < (seCorner.getX())) &&
+				(loc.getZ() <= nwCorner.getZ() && loc.getZ() > (seCorner.getZ())));   // Stupid Z axis is reversed
 	}
 
 }

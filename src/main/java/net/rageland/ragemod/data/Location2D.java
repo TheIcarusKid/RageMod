@@ -21,7 +21,7 @@ public class Location2D
 	}
 	
 	public double getX() { return x; }
-	public double getZ() { return x; }
+	public double getZ() { return z; }
 	
 	public double distance( Location location )
 	{

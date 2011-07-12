@@ -14,10 +14,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.util.config.Configuration;
 
+import net.rageland.ragemod.data.Factions;
+import net.rageland.ragemod.data.Lots;
 import net.rageland.ragemod.data.PlayerData;
 import net.rageland.ragemod.data.PlayerTowns;
 import net.rageland.ragemod.data.Players;
 import com.iConomy.*;
+import com.nijiko.permissions.PermissionHandler;
+import com.nijikokun.bukkit.Permissions.Permissions;
 //import com.nijiko.permissions.PermissionHandler;
 //import com.nijikokun.bukkit.Permissions.Permissions;
 //import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
@@ -35,32 +39,29 @@ public class RageMod extends JavaPlugin {
     private final RMPlayerListener playerListener;
     private final RMBlockListener blockListener;
     private final RMServerListener serverListener;
+    private final RMEntityListener entityListener;
+    
     private final HashMap<Player, Boolean> debugees = new HashMap<Player, Boolean>();
     private Server server; 
     private PluginManager pluginManager;
-    public int townCost;
     public iConomy iConomy;
- //   public WorldGuardPlugin worldGuard;
+
     public static String mainDirectory = "plugins/RageMod";
-//    public static PermissionHandler permissionHandler;
+    public static PermissionHandler permissionHandler;
     public File file = new File(mainDirectory + File.separator + "config.yml");
-    private String missingPermissions;
-    //public DatabaseHandler dbhandler = null;
     
     // Static utility classes
     public static RageConfig Config = null;
     public static RageDB Database = null;  
     public static RageZones Zones = null;
     
-    public RageMod() {
+    public RageMod() 
+    {
     	serverListener = new RMServerListener(this);
     	playerListener = new RMPlayerListener(this);
     	blockListener = new RMBlockListener(this);  
+    	entityListener = new RMEntityListener(this);
     	iConomy = null; 
-    	missingPermissions = "You don't have permissions to execute that command.";
-    	
-
-        
     }
     
     
@@ -75,19 +76,27 @@ public class RageMod extends JavaPlugin {
         pluginManager.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.Normal, this);
         pluginManager.registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
         pluginManager.registerEvent(Event.Type.PLAYER_JOIN, playerListener, Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.PLAYER_RESPAWN, playerListener, Priority.Normal, this);
         
-//        setupPermissions();
+        pluginManager.registerEvent(Event.Type.BLOCK_BREAK, blockListener, Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.BLOCK_PLACE, blockListener, Priority.Normal, this);
+        
+        pluginManager.registerEvent(Event.Type.ENTITY_DAMAGE, entityListener, Priority.Normal, this);
+        
+        setupPermissions();
         System.out.println( "RageMod is enabled!" );
         
         // Initialize the static classes - make sure to initialize Config first as ther other constuctors rely on it
         Config = new RageConfig();
         Database = new RageDB(this);
         Zones = new RageZones(this);
-    	
         
         // Load the HashMaps for DB data
-        PlayerTowns.GetInstance().LoadPlayerTowns();
-        Players.GetInstance();
+        PlayerTowns.getInstance().loadPlayerTowns();
+        Players.GetInstance();	// Player data is not loaded until players log on
+        Lots.getInstance().loadLots();
+        Factions.GetInstance().loadFactions();
         
         // Run some tests because of stupid MC validation preventing me from testing in-game >:(
         runTests();
@@ -99,18 +108,18 @@ public class RageMod extends JavaPlugin {
         System.out.println("Goodbye world!");
     }
     
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {    	       	
-    	if(command.getName().equalsIgnoreCase("claimtown") && sender instanceof Player) {
-    		
-//    		if(!this.permissionHandler.has((Player) sender, "ragemod.commands.claimtown") ){
-//    			sender.sendMessage(missingPermissions);
-//    			return true; // Nothing happens, the user don't have permissions
-//    		}
- //   		townManager.addTown(args[0], (Player) sender);	
-	    	return true;
-    	}       	
-    	return false;
-    }
+//    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {    	       	
+//    	if(command.getName().equalsIgnoreCase("claimtown") && sender instanceof Player) {
+//    		
+////    		if(!this.permissionHandler.has((Player) sender, "ragemod.commands.claimtown") ){
+////    			sender.sendMessage(missingPermissions);
+////    			return true; // Nothing happens, the user don't have permissions
+////    		}
+// //   		townManager.addTown(args[0], (Player) sender);	
+//	    	return true;
+//    	}       	
+//    	return false;
+//    }
     
     public Configuration load(){
         try {
@@ -138,30 +147,22 @@ public class RageMod extends JavaPlugin {
         debugees.put(player, value);
     }
     
-//    private void setupPermissions() {
-//        Plugin permissionsPlugin = this.getServer().getPluginManager().getPlugin("Permissions");
-//
-//        if (this.permissionHandler == null) {
-//            if (permissionsPlugin != null) {
-//                this.permissionHandler = ((Permissions) permissionsPlugin).getHandler();
-//            } else {
-//                
-//            }
-//        }
-//    }
+    private void setupPermissions() {
+        Plugin permissionsPlugin = this.getServer().getPluginManager().getPlugin("Permissions");
+
+        if (this.permissionHandler == null) {
+            if (permissionsPlugin != null) {
+                this.permissionHandler = ((Permissions) permissionsPlugin).getHandler();
+            } else {
+                
+            }
+        }
+    }
     
     private void runTests()
     {
-    	//Location testLoc1 = new Location(this.getServer().getWorld("world"), 100, 64, -100);
-    	String playerName = "RedPlayer1";
-    	
-    	Players.PlayerLogin(playerName);
-    	PlayerData playerData = Players.Get(playerName);
-    	
-    	System.out.println(playerName + "'s town is " + playerData.TownName);
-    	
-    	System.out.println("Players size: " + Players.size());
-    	
+
+    	System.out.println("Number of lots:" + Lots.getAll().size());
     	
     	
     	

@@ -1,6 +1,7 @@
 package net.rageland.ragemod;
 
 import net.rageland.ragemod.data.Location2D;
+import net.rageland.ragemod.data.Region2D;
 
 import org.bukkit.Location;
 
@@ -17,6 +18,8 @@ public class RageZones {
     public static int ZoneC_Border;
     
     public static Location2D WorldSpawn;
+    
+    public static Region2D Capitol_RegionA;
     
 	public enum Action {
 		TOWN_CREATE;
@@ -41,6 +44,9 @@ public class RageZones {
     	ZoneB_Border = RageConfig.ZoneB_Border;
     	ZoneC_Name = RageConfig.ZoneC_Name;
     	ZoneC_Border = RageConfig.ZoneC_Border;
+    	
+    	// Load the capitol regions
+    	Capitol_RegionA = new Region2D(RageConfig.Capitol_X1a, RageConfig.Capitol_Z1a, RageConfig.Capitol_X2a, RageConfig.Capitol_Z2a);
     	
     	plugin = ragemod;
     	
@@ -118,6 +124,12 @@ public class RageZones {
     public static boolean IsInZoneC(Location location)
     {
     	return ( WorldSpawn.distance(location) > ZoneB_Border && WorldSpawn.distance(location) <= ZoneC_Border );
+    }
+    
+    // Returns whether the player is in the world capitol
+    public static boolean IsInCapitol(Location location)
+    {
+    	return ( Capitol_RegionA.isInside(location) );
     }
     
     // Checks whether a specified action is allowed in the zone specified by 'location'

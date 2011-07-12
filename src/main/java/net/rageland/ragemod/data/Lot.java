@@ -1,5 +1,7 @@
 package net.rageland.ragemod.data;
 
+import net.rageland.ragemod.RageConfig;
+
 import org.bukkit.Location;
 
 // May want to consider having this extend the Region2D class
@@ -97,13 +99,35 @@ public class Lot
 	// Return whether or not the player can use the /home set command inside this lot
 	public boolean canSetHome()
 	{
-		return category != LotCategory.WARRENS && category != LotCategory.MARKET;
+		return isMemberLot();
 	}
 	
 	// Returns whether or not the current location is inside the Lot
 	public boolean isInside(Location loc)
 	{
 		return region.isInside(loc);
+	}
+	
+	// Returns whether or not the lot is one of the categories of member lot
+	public boolean isMemberLot()
+	{
+		return category == LotCategory.COAL || category == LotCategory.IRON ||
+			   category == LotCategory.GOLD || category == LotCategory.DIAMOND; 
+	}
+	
+	// Returns the price for this lot as defined in the config
+	public int getPrice()
+	{
+		if( category == LotCategory.COAL )
+			return RageConfig.Lot_CoalPrice;
+		else if( category == LotCategory.IRON )
+			return RageConfig.Lot_IronPrice;
+		else if( category == LotCategory.GOLD )
+			return RageConfig.Lot_GoldPrice;
+		else if( category == LotCategory.DIAMOND )
+			return RageConfig.Lot_DiamondPrice;
+		else
+			return 0;
 	}
 	
 	

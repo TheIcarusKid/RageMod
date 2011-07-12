@@ -1,5 +1,6 @@
 package net.rageland.ragemod.commands;
 
+import net.rageland.ragemod.RageConfig;
 import net.rageland.ragemod.RageMod;
 import net.rageland.ragemod.data.Lot;
 import net.rageland.ragemod.data.Lot.LotCategory;
@@ -49,7 +50,7 @@ public class LotCommands
 		if( lot == null )
 		{
 			if( lotCode.equals("") )
-				player.sendMessage("You are not standing on a valid lot.  (use /lot check and consult the online map)");
+				player.sendMessage("You are not standing on a valid lot.  (consult the online map)");
 			else
 				player.sendMessage(lotCode + " is not a valid lot code.  (consult the online map)");
 			return;
@@ -57,11 +58,14 @@ public class LotCommands
 		// See if the lot is already claimed
 		if( !lot.owner.equals("") )
 		{
-			player.sendMessage("Lot " + lot.getLotCode() + " is already owned by " + lot.owner + ".");
+			if( lot.owner.equals(playerData.name) )
+				player.sendMessage("You already own this lot!");
+			else
+				player.sendMessage("Lot " + lot.getLotCode() + " is already owned by " + lot.owner + ".");
 			return;
 		}
 		// Make sure the player does not already own a lot of the current lot's category
-		for( Lot ownedLot : playerData.Lots )
+		for( Lot ownedLot : playerData.lots )
 		{
 			if( ownedLot.category == lot.category && (lot.category == LotCategory.WARRENS || lot.category == LotCategory.MARKET) )
 			{
@@ -72,21 +76,36 @@ public class LotCommands
 					 (ownedLot.category == LotCategory.COAL || ownedLot.category == LotCategory.IRON || ownedLot.category == LotCategory.GOLD || ownedLot.category == LotCategory.DIAMOND) )
 			{
 				player.sendMessage("You can only own one member lot at a time.");
+				return;
+			}
+		}
+		// If the player is claiming a member lot, see if they have donated the appropriate amount
+		if( lot.isMemberLot() )
+		{
+			int donation = RageMod.Database.getRecentDonations(playerData.id_Player);
+			
+			if( donation < lot.getPrice() )
+			{
+				player.sendMessage("To claim this lot you must be a " + lot.getCategoryName() + "-level " + RageConfig.ServerName + " member.");
+				player.sendMessage("Visit http://www.rageland.net/donate for more details.");
+				return;
 			}
 		}
 		
 		// TODO: Check donation status (implement a 2nd currency for buying lots?)
 		
 		// All checks have succeeded - give the lot to the player
-		RageMod.Database.LotClaim(playerData, lot);
+		RageMod.Database.lotClaim(playerData, lot);
 		
 		// Update the playerData
-		playerData.Lots.add(lot);
+		playerData.lots.add(lot);
 		Players.Update(playerData);
 		
 		// Update Lots to set the owner
-		lot.owner = playerData.Name;
+		lot.owner = playerData.name;
 		Lots.put(lot);
+		
+		player.sendMessage("You now own lot " + lot.getLotCode() + ".");
 	}
 
 	// /lot unclaim [lot_code]
@@ -95,6 +114,8 @@ public class LotCommands
 		PlayerData playerData = Players.Get(player.getName());
 		Lot lot;
 		boolean isLotOwned = false;
+		
+		lotCode = lotCode.toUpperCase();
 		
 		// Get the current lot, whether blank (current location) or typed
 		if( lotCode.equals("") )
@@ -112,7 +133,7 @@ public class LotCommands
 			return;
 		}
 		// Make sure the player owns the specified lot
-		for( Lot ownedLot : playerData.Lots )
+		for( Lot ownedLot : playerData.lots )
 		{
 			if( ownedLot.id_Lot == lot.id_Lot )
 				isLotOwned = true;
@@ -124,14 +145,37 @@ public class LotCommands
 		}
 		
 		// All checks have succeeded - reset the lot owner
-		RageMod.Database.LotUnclaim(lot);
+		RageMod.Database.lotUnclaim(lot);
 		
 		// Update the playerData
-		playerData.Lots.remove(lot);
+		playerData.lots.remove(lot);
 		Players.Update(playerData);
 		
 		// Update Lots to remove the owner
 		lot.owner = "";
 		Lots.put(lot);
+		
+		player.sendMessage("You are no longer the owner of lot " + lot.getLotCode() + ".");
+	}
+
+	public static void list(Player player) 
+	{
+		PlayerData playerData = Players.Get(player.getName());
+		
+		// Make sure the player actually owns lots
+		if( playerData.lots.size() == 0 )
+		{
+			player.sendMessage("You do not own any lots.");
+			return;
+		}
+		
+		player.sendMessage("You currently own the following lots:");
+		
+		for( Lot lot : playerData.lots )
+		{
+			player.sendMessage("   " + lot.getLotCode() + " (" + lot.getCategoryName() + ")  " + 
+							   "x: " + (int)lot.region.nwCorner.getX() + "  z: " + (int)lot.region.nwCorner.getZ());
+		}
+				
 	}
 }

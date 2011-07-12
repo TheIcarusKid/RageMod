@@ -9,6 +9,7 @@ import net.rageland.ragemod.RageMod;
 import org.bukkit.Location;
 
 // TODO: Consider making this an Integer hash map for speed - implement a method to return PlayerTown by searching for name
+// 		 I could also store a separate hash/array that stores ID to string for fast lookup (would this actually be faster?)
 
 public class PlayerTowns {
 	
@@ -17,7 +18,7 @@ public class PlayerTowns {
 	
 	private static HashMap<String, PlayerTown> towns;
 	
-    public static PlayerTowns GetInstance() 
+    public static PlayerTowns getInstance() 
     {
 		if (instance == null) 
 		{
@@ -27,58 +28,59 @@ public class PlayerTowns {
 	}
 	
 	// On startup, pull all the PlayerTown data from the DB into memory 
-	public void LoadPlayerTowns()
+	public void loadPlayerTowns()
 	{
-		towns = RageMod.Database.LoadPlayerTowns();	
+		towns = RageMod.Database.loadPlayerTowns();	
 	}
 	
 	// Insert/update town info
-	public static void Put(PlayerTown playerTown)
+	public static void put(PlayerTown playerTown)
 	{
-		towns.put(playerTown.TownName, playerTown);
+		towns.put(playerTown.townName, playerTown);
 	}
 	
 	// Gets the town from memory.  Returns NULL for non-existent towns
-    public static PlayerTown Get(String townName)
+    public static PlayerTown get(String townName)
     {       	
     	if( towns.containsKey(townName) )
     		return towns.get(townName);
     	else
     	{
-    		System.out.println("Error: PlayerTowns.Get called on non-existent town");
+    		System.out.println("Warning: PlayerTowns.Get called on non-existent town '" + townName + "'");
     		return null;
     	}
     }
     
     // Returns all towns
-    public static ArrayList<PlayerTown> GetAll()
+    public static ArrayList<PlayerTown> getAll()
     {
-    	return (ArrayList<PlayerTown>) towns.values();
+    	System.out.println("Number of towns: " + towns.values().size());
+    	return new ArrayList<PlayerTown>(towns.values());
     }
     
     
     // Check for all nearby towns within minimum distance (for creating new towns)
- 	public static HashMap<String, Integer> CheckForNearbyTowns(Location location)
+ 	public static HashMap<String, Integer> checkForNearbyTowns(Location location)
  	{
  		HashMap<String, Integer> townList = new HashMap<String, Integer>();
  		double distance; 
  		
  		for( PlayerTown town : towns.values() )
  		{
- 			distance = town.Coords.distance(location);
+ 			distance = town.centerPoint.distance(location);
  			if( distance < RageConfig.Town_MinDistanceBetween )
- 				townList.put(town.TownName, (int)distance);
+ 				townList.put(town.townName, (int)distance);
  		}
  		
  		return townList;
  	}
     
     // Checks to see if the selected faction already has a capitol; used by /townupgrade
-    public static boolean DoesFactionCapitolExist(String faction)
+    public static boolean doesFactionCapitolExist(int faction)
     {
     	for( PlayerTown town : towns.values () )
     	{
-    		if( town.Faction == faction && town.IsCapitol() )
+    		if( town.id_Faction == faction && town.isCapitol() )
     			return true;
     	}
     	
@@ -86,11 +88,11 @@ public class PlayerTowns {
     }
     
     // Checks to see if nearby enemy capitols are too close; used by /townupgrade
-    public static boolean AreEnemyCapitolsTooClose(PlayerTown playerTown)
+    public static boolean areEnemyCapitolsTooClose(PlayerTown playerTown)
     {
     	for( PlayerTown town : towns.values () )
     	{
-    		if( town.IsCapitol() && town.Coords.distance(playerTown.Coords) < RageConfig.Town_MinDistanceEnemyCapitol )
+    		if( town.isCapitol() && town.centerPoint.distance(playerTown.centerPoint) < RageConfig.Town_MinDistanceEnemyCapitol )
     		{
     			return true;
     		}
@@ -98,6 +100,20 @@ public class PlayerTowns {
     	
     	return false;	// No too-close capitols found
     }
+
+	public static PlayerTown getCurrentTown(Location location) 
+	{
+		for( PlayerTown town : towns.values() )
+    	{
+    		if( town.isInside(location) )
+    		{
+    			return town;
+    		}
+    	}
+	
+		// Location not inside any town; return null
+		return null;
+	}
 
 }
 

@@ -8,6 +8,7 @@ import net.rageland.ragemod.RageConfig;
 import net.rageland.ragemod.RageMod;
 import net.rageland.ragemod.RageZones;
 import net.rageland.ragemod.RageZones.Action;
+import net.rageland.ragemod.data.Factions;
 import net.rageland.ragemod.data.Location2D;
 import net.rageland.ragemod.data.PlayerData;
 import net.rageland.ragemod.data.PlayerTown;
@@ -18,6 +19,8 @@ import net.rageland.ragemod.data.TownLevel;
 import org.bukkit.entity.Player;
 
 // TODO: Text colors for player feedback
+
+// TODO: Keep towns from being created on zone borders
 
 // The Commands classes handle all the state checking for typed commands, then send them to the database if approved
 public class TownCommands 
@@ -35,37 +38,37 @@ public class TownCommands
 			return;
 		}
 		// Ensure that the current player is the mayor
-		if( !playerData.IsMayor )
+		if( !playerData.isMayor )
 		{
 			player.sendMessage("Only town mayors can use '/town add'.");
 			return;
 		}		
 		// Ensure that the target player is not currently a resident of a town
-		if( !targetPlayerData.TownName.equals("") )
+		if( !targetPlayerData.townName.equals("") )
 		{
-			player.sendMessage(targetPlayerName + " is already a resident of '" + targetPlayerData.TownName + "'.");
+			player.sendMessage(targetPlayerName + " is already a resident of '" + targetPlayerData.townName + "'.");
 			return;
 		}		
 		// Ensure that the target player is the same faction as the mayor
-		if( !playerData.Faction.equals(targetPlayerData.Faction) )
+		if( playerData.id_Faction != targetPlayerData.id_Faction )
 		{
 			player.sendMessage("You can only add players that are the same faction as you.");
 			return;
 		}
-		if( PlayerTowns.Get(playerData.TownName).IsFull() )
+		if( PlayerTowns.get(playerData.townName).isFull() )
 		{
 			player.sendMessage("Your town already has the maximum number of residents for its level.");
 			return;
 		}
 		
 		// Add the target to the player's town
-		RageMod.Database.TownAdd(targetPlayerName, playerData.TownName);
+		RageMod.Database.townAdd(targetPlayerName, playerData.townName);
 		
 		// Update the playerData
-		targetPlayerData.TownName = playerData.TownName;
+		targetPlayerData.townName = playerData.townName;
 		Players.Update(targetPlayerData);
 		
-		player.sendMessage(targetPlayerName + " is now a resident of " + playerData.TownName + ".");		
+		player.sendMessage(targetPlayerName + " is now a resident of " + playerData.townName + ".");		
 	}
 	
 	// /town  create <town_name>
@@ -75,16 +78,16 @@ public class TownCommands
 		// ORRRRRR just check when typing /town create without a name.  Return all towns that are too close
 		
 		PlayerData playerData = Players.Get(player.getName());
-		HashMap<String, Integer> nearbyTowns = PlayerTowns.CheckForNearbyTowns(player.getLocation());
+		HashMap<String, Integer> nearbyTowns = PlayerTowns.checkForNearbyTowns(player.getLocation());
 
 		// Ensure that the player is not currently a resident of a town
-		if( !playerData.TownName.equals("") )
+		if( !playerData.townName.equals("") )
 		{
-			player.sendMessage("You are already a resident of '" + playerData.TownName + "'; you must use '/town leave' before you can create a new town.");
+			player.sendMessage("You are already a resident of '" + playerData.townName + "'; you must use '/town leave' before you can create a new town.");
 			return;
 		}		
 		// Ensure that the town name is not taken
-		if( PlayerTowns.Get(townName) != null )
+		if( PlayerTowns.get(townName) != null )
 		{
 			player.sendMessage("A town named " + townName + " already exists!");
 			return;
@@ -104,6 +107,7 @@ public class TownCommands
 				message += nearbyTownName + " (" + nearbyTowns.get(nearbyTownName) + "m) ";
 			}
 			player.sendMessage(message);
+			player.sendMessage("Towns must be a minimum distance of " + RageConfig.Town_MinDistanceBetween + "m apart.");
 			return;
 		}
 		
@@ -115,24 +119,30 @@ public class TownCommands
 		if( !townName.equals("") )
 		{
 			// Add the new town to the database
-			int townID = RageMod.Database.TownCreate(player, townName);
-			
-			// Update the playerData
-			playerData.TownName = townName;
-			playerData.IsMayor = true;
-			Players.Update(playerData);
+			int townID = RageMod.Database.townCreate(player, townName);
 			
 			// Update PlayerTowns
 			PlayerTown playerTown = new PlayerTown();
-			playerTown.ID_PlayerTown = townID;
-			playerTown.TownName = townName;
-			playerTown.Coords = new Location2D((int)player.getLocation().getX(), (int)player.getLocation().getZ());
-			playerTown.Faction = playerData.Faction;
-			playerTown.BankruptDate = null;
-			playerTown.TownLevel = 1;
-			playerTown.TreasuryBalance = RageConfig.TownLevels.get(1).MinimumBalance;
-			playerTown.Mayor = playerData.Name;
-			PlayerTowns.Put(playerTown);
+			playerTown.id_PlayerTown = townID;
+			playerTown.townName = townName;
+			playerTown.centerPoint = new Location2D((int)player.getLocation().getX(), (int)player.getLocation().getZ());
+			playerTown.id_Faction = playerData.id_Faction;
+			playerTown.bankruptDate = null;
+			playerTown.townLevel = RageConfig.TownLevels.get(1);
+			playerTown.treasuryBalance = RageConfig.TownLevels.get(1).MinimumBalance;
+			playerTown.mayor = playerData.name;
+			playerTown.world = player.getWorld();
+			
+			playerTown.buildRegion();
+			playerTown.createBorder();
+			
+			PlayerTowns.put(playerTown);
+			
+			// Update the playerData
+			playerData.townName = townName;
+			playerData.isMayor = true;
+			playerData.currentTown = playerTown;
+			Players.Update(playerData);
 			
 			player.sendMessage("Congratulations, you are the new mayor of " + townName + "!");		
 		}
@@ -155,33 +165,34 @@ public class TownCommands
 			return;
 		}
 		// Ensure that the current player is the mayor
-		if( !playerData.IsMayor )
+		if( !playerData.isMayor )
 		{
 			player.sendMessage("Only town mayors can use /town evict.");
 			return;
 		}		
 		// Ensure that the target player is a resident of the mayor's town
-		if( !targetPlayerData.TownName.equals(playerData.TownName) )
+		if( !targetPlayerData.townName.equals(playerData.townName) )
 		{
-			player.sendMessage(targetPlayerName + " is not a resident of " + playerData.TownName + ".");
+			player.sendMessage(targetPlayerName + " is not a resident of " + playerData.townName + ".");
 			return;
 		}
 		
 		// Remove the target from the player's town
-		RageMod.Database.TownLeave(targetPlayerName);
+		RageMod.Database.townLeave(targetPlayerName);
 		
 		// Update the playerData
-		targetPlayerData.TownName = "";
+		targetPlayerData.townName = "";
+		targetPlayerData.spawn_IsSet = false;
 		Players.Update(targetPlayerData);
 		
-		player.sendMessage(targetPlayerName + " is no longer a resident of " + playerData.TownName + ".");		
+		player.sendMessage(targetPlayerName + " is no longer a resident of " + playerData.townName + ".");		
 	}
 	
 	// /town info [town_name]
 	public static void info(Player player, String townName) 
 	{
 		PlayerData playerData = Players.Get(player.getName());
-		PlayerTown playerTown = PlayerTowns.Get(townName);
+		PlayerTown playerTown = PlayerTowns.get(townName);
 		
 		// Check to see if specified town exists
 		if( playerTown == null )
@@ -191,12 +202,12 @@ public class TownCommands
 		}
 		
 		player.sendMessage("Info for " + townName + ":");
-		player.sendMessage("   Faction: " + playerTown.Faction);
-		player.sendMessage("   Level: " + playerTown.GetLevel().Name + " (" + playerTown.TownLevel + ")");
-		player.sendMessage("   Mayor: " + playerTown.Mayor);
-		if( playerData.TownName.equalsIgnoreCase(townName) )
+		player.sendMessage("   Faction: " + Factions.getName(playerTown.id_Faction));
+		player.sendMessage("   Level: " + playerTown.getLevel().Name + " (" + playerTown.townLevel.Level + ")");
+		player.sendMessage("   Mayor: " + playerTown.mayor);
+		if( playerData.townName.equalsIgnoreCase(townName) )
 		{
-			player.sendMessage("   Treasury Balance: " + playerTown.TreasuryBalance + " Coins");
+			player.sendMessage("   Treasury Balance: " + playerTown.treasuryBalance + " Coins");
 			
 			// TODO: Return info about player deposits 
 		}
@@ -206,7 +217,7 @@ public class TownCommands
 	public static void leave(Player player)
 	{
 		PlayerData playerData = Players.Get(player.getName());
-		String townName = playerData.TownName;
+		String townName = playerData.townName;
 
 		// Ensure that the player is currently a resident of a town
 		if( townName.equals("") )
@@ -215,18 +226,19 @@ public class TownCommands
 			return;
 		}		
 		// Ensure that the player is not the mayor
-		if( playerData.IsMayor )
+		if( playerData.isMayor )
 		{
 			player.sendMessage("Town mayors cannot use '/town leave'; contact an admin to shut down your town.");
 			return;
 		}
 		
 		// Remove the player from the town in the database
-		RageMod.Database.TownLeave(playerData.Name);
+		RageMod.Database.townLeave(playerData.name);
 		
 		// Update the playerData
-		playerData.TownName = "";
-		playerData.IsMayor = false;
+		playerData.townName = "";
+		playerData.isMayor = false;
+		playerData.spawn_IsSet = false;
 		Players.Update(playerData);
 		
 		player.sendMessage("You are no longer a resident of " + townName + ".");		
@@ -235,7 +247,7 @@ public class TownCommands
 	// /town list [faction]
 	public static void list(Player player, String factionName) 
 	{
-		ArrayList<PlayerTown> towns = PlayerTowns.GetAll();
+		ArrayList<PlayerTown> towns = PlayerTowns.getAll();
 		
 		// TODO: Implement page # functionality 
 		
@@ -245,21 +257,21 @@ public class TownCommands
 		Collections.sort(towns);
 		
 		if( factionName.equals("") )
-			player.sendMessage("List of all towns:");
+			player.sendMessage("List of all towns: (" + towns.size() + ")");
 		else
 			player.sendMessage("List of all towns for " + factionName + " faction:");
 		
 		for( PlayerTown town : towns )
 		{
-			if( town.Faction.equalsIgnoreCase(factionName) || factionName.equals("") )
-				player.sendMessage(town.Faction + ": " + town.TownName + " (" + town.GetLevel() + ")");
+			if( Factions.getName(town.id_Faction).equalsIgnoreCase(factionName) || factionName.equals("") )
+				player.sendMessage(town.id_Faction + ": " + town.townName + " (" + town.getLevel().Name + ")");
 		}
 	}
 	
 	// /town residents [town_name]
 	public static void residents(Player player, String townName) 
 	{
-		PlayerTown playerTown = PlayerTowns.Get(townName);
+		PlayerTown playerTown = PlayerTowns.get(townName);
 		boolean isMayor = true;
 		
 		// Check to see if specified town exists
@@ -269,9 +281,9 @@ public class TownCommands
 			return;
 		}
 		
-		player.sendMessage("Residents of " + playerTown.TownName + ":");
+		player.sendMessage("Residents of " + playerTown.townName + ":");
 		
-		ArrayList<String> residents = RageMod.Database.ListTownResidents(townName);
+		ArrayList<String> residents = RageMod.Database.listTownResidents(townName);
 		
 		for( String resident : residents )
 		{
@@ -291,42 +303,42 @@ public class TownCommands
 	public static void upgrade(Player player, boolean isConfirmed)
 	{
 		PlayerData playerData = Players.Get(player.getName());
-		PlayerTown playerTown = PlayerTowns.Get(playerData.TownName);
+		PlayerTown playerTown = PlayerTowns.get(playerData.townName);
 		
 		// Ensure that the current player is the mayor
-		if( !playerData.IsMayor )
+		if( !playerData.isMayor )
 		{
 			player.sendMessage("Only town mayors can use '/town upgrade'.");
 			return;
 		}
 		// Ensure that the town is not at its maximum level
-		if( playerTown.IsAtMaxLevel() )
+		if( playerTown.isAtMaxLevel() )
 		{
 			player.sendMessage("Your town is already at its maximum level.");
 			return;
 		}
 		
 		// Load the data for the target town level
-		TownLevel targetLevel = RageConfig.TownLevels.get(playerTown.TownLevel + 1);
+		TownLevel targetLevel = RageConfig.TownLevels.get(playerTown.townLevel.Level + 1);
 		
 		// If the upgrade would make the current town a capitol...
 		if( targetLevel.IsCapitol )
 		{
 			// ...check to see if the player's faction already has a capitol...
-			if( PlayerTowns.DoesFactionCapitolExist(playerData.Faction) )
+			if( PlayerTowns.doesFactionCapitolExist(playerData.id_Faction) )
 			{
 				player.sendMessage("Your faction already has a capitol; your town cannot be upgraded further.");
 				return;
 			}
 			// ...and make sure it is not too close to enemy capitols.
-			if( PlayerTowns.AreEnemyCapitolsTooClose(playerTown) )
+			if( PlayerTowns.areEnemyCapitolsTooClose(playerTown) )
 			{
 				player.sendMessage("Your town is ineligible to be your faction's capitol; it is too close to an enemy capitol.");
 				return;
 			}
 		}
 		// Check treasury balance
-		if( playerTown.TreasuryBalance < targetLevel.InitialCost )
+		if( playerTown.treasuryBalance < targetLevel.InitialCost )
 		{
 			player.sendMessage("You need at least " + targetLevel.InitialCost + " Coins to upgrade your town to a " + targetLevel.Name + ".");
 			return;
@@ -336,13 +348,15 @@ public class TownCommands
 		if( isConfirmed ) 
 		{
 			// Update PlayerTowns; subtract balance from treasury; also add minimum balance
-			playerTown.TownLevel = playerTown.TownLevel + 1;
-			playerTown.TreasuryBalance = playerTown.TreasuryBalance - targetLevel.InitialCost + targetLevel.MinimumBalance;
-			PlayerTowns.Put(playerTown);
+			playerTown.townLevel = RageConfig.TownLevels.get(playerTown.townLevel.Level + 1);
+			playerTown.treasuryBalance = playerTown.treasuryBalance - targetLevel.InitialCost + targetLevel.MinimumBalance;
+			playerTown.buildRegion();
+			playerTown.createBorder();
+			PlayerTowns.put(playerTown);
 			
-			RageMod.Database.TownUpgrade(playerTown.TownName);
+			RageMod.Database.townUpgrade(playerTown.townName, (targetLevel.InitialCost - targetLevel.MinimumBalance));
 			
-			player.sendMessage("Congratulations, " + playerTown.TownName + " has been upgraded to a " + targetLevel.Name + "!");
+			player.sendMessage("Congratulations, " + playerTown.townName + " has been upgraded to a " + targetLevel.Name + "!");
 		}
 		else
 		{

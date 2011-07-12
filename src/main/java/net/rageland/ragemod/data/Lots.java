@@ -28,7 +28,7 @@ public class Lots
 	// On startup, pull all the Lot data from the DB into memory 
 	public void loadLots()
 	{
-		lots = RageMod.Database.LoadLots();	
+		lots = RageMod.Database.loadLots();	
 	}
 	
 	// Insert/update town info
@@ -40,27 +40,43 @@ public class Lots
 	// Gets the lot from memory.  Returns NULL for non-existent lot
     public static Lot get(String lotCode)
     {       	
-    	if( lots.containsKey(lotCode) )
+    	if( lots.containsKey(lotCode.toUpperCase()) )
     		return lots.get(lotCode);
     	else
     	{
-    		System.out.println("Error: Lots.Get called on non-existent lot");
+    		System.out.println("Error: Lots.Get called on non-existent lot code " + lotCode);
     		return null;
     	}
+    }
+    
+    // Gets the lot by database ID
+    public static Lot get(int id)
+    {
+    	for( Lot lot : lots.values() )
+		{
+    		if( lot.id_Lot == id )
+			{
+				return lot;
+			}
+		}
+    	
+    	// If we reach this point, we did not find a lot
+    	System.out.println("Error: Lots.Get called on non-existent lot ID " + id);
+    	return null;
     }
     
     // Returns all lots
     public static ArrayList<Lot> getAll()
     {
-    	return (ArrayList<Lot>) lots.values();
+    	return new ArrayList<Lot>(lots.values());
     }
     
     // Find which lot the player is standing in, if any
     public static Lot findCurrentLot(Location loc)
     {
-    	for( Lot lot : (ArrayList<Lot>) lots.values() )
+    	for( Lot lot : lots.values() )
 		{
-			if( lot.isInside(loc) )
+    		if( lot.isInside(loc) )
 			{
 				return lot;
 			}
