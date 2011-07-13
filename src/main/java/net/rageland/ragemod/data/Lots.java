@@ -41,7 +41,7 @@ public class Lots
     public static Lot get(String lotCode)
     {       	
     	if( lots.containsKey(lotCode.toUpperCase()) )
-    		return lots.get(lotCode);
+    		return lots.get(lotCode.toUpperCase());
     	else
     	{
     		System.out.println("Error: Lots.Get called on non-existent lot code " + lotCode);

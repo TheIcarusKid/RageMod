@@ -36,14 +36,14 @@ public class PlayerTowns {
 	// Insert/update town info
 	public static void put(PlayerTown playerTown)
 	{
-		towns.put(playerTown.townName, playerTown);
+		towns.put(playerTown.townName.toLowerCase(), playerTown);
 	}
 	
 	// Gets the town from memory.  Returns NULL for non-existent towns
     public static PlayerTown get(String townName)
     {       	
-    	if( towns.containsKey(townName) )
-    		return towns.get(townName);
+    	if( towns.containsKey(townName.toLowerCase()) )
+    		return towns.get(townName.toLowerCase());
     	else
     	{
     		System.out.println("Warning: PlayerTowns.Get called on non-existent town '" + townName + "'");
@@ -68,7 +68,7 @@ public class PlayerTowns {
  		for( PlayerTown town : towns.values() )
  		{
  			distance = town.centerPoint.distance(location);
- 			if( distance < RageConfig.Town_MinDistanceBetween )
+ 			if( distance < RageConfig.Town_MIN_DISTANCE_BETWEEN )
  				townList.put(town.townName, (int)distance);
  		}
  		
@@ -92,7 +92,7 @@ public class PlayerTowns {
     {
     	for( PlayerTown town : towns.values () )
     	{
-    		if( town.isCapitol() && town.centerPoint.distance(playerTown.centerPoint) < RageConfig.Town_MinDistanceEnemyCapitol )
+    		if( town.isCapitol() && town.centerPoint.distance(playerTown.centerPoint) < RageConfig.Town_MIN_DISTANCE_ENEMY_CAPITOL )
     		{
     			return true;
     		}

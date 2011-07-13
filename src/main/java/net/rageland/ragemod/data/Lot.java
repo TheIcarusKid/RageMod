@@ -3,6 +3,7 @@ package net.rageland.ragemod.data;
 import net.rageland.ragemod.RageConfig;
 
 import org.bukkit.Location;
+import org.bukkit.World;
 
 // May want to consider having this extend the Region2D class
 
@@ -23,6 +24,7 @@ public class Lot
 	public int number;
 	public LotCategory category;
 	public Region2D region;
+	public World world;
 	public String owner;			// Only necessary when loaded into the Lots global
 	
 	// Blank constructor 
@@ -119,15 +121,22 @@ public class Lot
 	public int getPrice()
 	{
 		if( category == LotCategory.COAL )
-			return RageConfig.Lot_CoalPrice;
+			return RageConfig.Lot_PRICE_COAL;
 		else if( category == LotCategory.IRON )
-			return RageConfig.Lot_IronPrice;
+			return RageConfig.Lot_PRICE_IRON;
 		else if( category == LotCategory.GOLD )
-			return RageConfig.Lot_GoldPrice;
+			return RageConfig.Lot_PRICE_GOLD;
 		else if( category == LotCategory.DIAMOND )
-			return RageConfig.Lot_DiamondPrice;
+			return RageConfig.Lot_PRICE_DIAMOND;
 		else
 			return 0;
+	}
+	
+	// Returns a location in the center of the region for compass target
+	public Location getCenter()
+	{
+		return new Location(world, region.nwCorner.getX() - ((region.nwCorner.getX() - region.seCorner.getX()) / 2), 65,
+								   region.seCorner.getZ() - ((region.seCorner.getZ() - region.nwCorner.getZ()) / 2));
 	}
 	
 	

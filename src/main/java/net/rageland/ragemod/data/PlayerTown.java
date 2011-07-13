@@ -78,14 +78,14 @@ public class PlayerTown implements Comparable<PlayerTown> {
 	public boolean isAtMaxLevel()
 	{
 		if( id_Faction == 0 )
-			return townLevel.Level >= RageConfig.Town_MaxLevel_Neutral;
+			return townLevel.Level >= RageConfig.Town_MAX_LEVEL_NEUTRAL;
 		else
-			return townLevel.Level >= RageConfig.Town_MaxLevel_Faction;
+			return townLevel.Level >= RageConfig.Town_MAXLEVEL_FACTION;
 	}
 	
 	public boolean isCapitol()
 	{
-		return RageConfig.TownLevels.get(townLevel).IsCapitol;
+		return RageConfig.townLevels.get(townLevel).IsCapitol;
 	}
 
 	// Checks to see if the town already has its maximum number of residents
@@ -108,12 +108,18 @@ public class PlayerTown implements Comparable<PlayerTown> {
 		return region.isInside(location);
 	}
 	
+	// Returns a Location at the center of the town
+	public Location getCenter()
+	{
+		return new Location(world, centerPoint.getX(), 65, centerPoint.getZ());
+	}
+	
 	// Puts a border of cobblestone on the edges of the town
 	public void createBorder()
 	{
 		int x, z;
 		
-		for (x = (int)region.nwCorner.getX(); x <= (int)region.seCorner.getX(); x++) 
+		for (x = (int)region.nwCorner.getX() + 1; x <= (int)region.seCorner.getX() - 1; x++) 
 		{
             // North Wall
 			z = (int)region.nwCorner.getZ();
@@ -146,12 +152,26 @@ public class PlayerTown implements Comparable<PlayerTown> {
             
             if( upperType == 0 && lowerType != 0 )
             {
-            	if( Material.getMaterial(lowerType) != Material.LEAVES 
+            	// Replace grass with cobble
+            	if( Material.getMaterial(lowerType) == Material.LONG_GRASS )
+            	{
+            		world.getBlockAt(x, y-1, z).setType(Material.COBBLESTONE);
+            	}
+            	// Don't place blocks on top of trees or torches
+            	else if( Material.getMaterial(lowerType) != Material.LEAVES 
             		&& Material.getMaterial(lowerType) != Material.TORCH)
+            	{
             		world.getBlockAt(x, y, z).setType(Material.COBBLESTONE);
+            	}
             	return;
             }
         }
+	}
+	
+	// Create the floor of the inner sanctum
+	public void buildSanctumFloor()
+	{
+		
 	}
 	
 	

@@ -2,6 +2,8 @@ package net.rageland.ragemod.data;
 
 import org.bukkit.Location;
 
+// TODO: Handle multiple worlds
+
 // Stores a rectangular area from bedrock to sky.  Used for Towns and Lots
 public class Region2D 
 {

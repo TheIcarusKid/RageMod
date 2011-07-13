@@ -18,6 +18,9 @@ import net.rageland.ragemod.data.TownLevel;
 
 import org.bukkit.entity.Player;
 
+import com.iConomy.iConomy;
+import com.iConomy.system.Holdings;
+
 // TODO: Text colors for player feedback
 
 // TODO: Keep towns from being created on zone borders
@@ -73,12 +76,11 @@ public class TownCommands
 	
 	// /town  create <town_name>
 	public static void create(Player player, String townName)
-	{
-		// TODO: Check for permission FIRST, then only process when player types /town  create <town_name>
-		// ORRRRRR just check when typing /town create without a name.  Return all towns that are too close
-		
+	{		
 		PlayerData playerData = Players.Get(player.getName());
 		HashMap<String, Integer> nearbyTowns = PlayerTowns.checkForNearbyTowns(player.getLocation());
+		Holdings holdings = iConomy.getAccount(player.getName()).getHoldings();
+		int cost = RageConfig.townLevels.get(1).InitialCost;
 
 		// Ensure that the player is not currently a resident of a town
 		if( !playerData.townName.equals("") )
@@ -93,7 +95,7 @@ public class TownCommands
 			return;
 		}
 		// Ensure that the current zone is allowed to create towns
-		if( !RageZones.CheckPermission(player.getLocation(), Action.TOWN_CREATE) )
+		if( !RageZones.checkPermission(player.getLocation(), Action.TOWN_CREATE) )
 		{
 			player.sendMessage("You cannot create a town in this zone.");
 			return;
@@ -107,13 +109,20 @@ public class TownCommands
 				message += nearbyTownName + " (" + nearbyTowns.get(nearbyTownName) + "m) ";
 			}
 			player.sendMessage(message);
-			player.sendMessage("Towns must be a minimum distance of " + RageConfig.Town_MinDistanceBetween + "m apart.");
+			player.sendMessage("Towns must be a minimum distance of " + RageConfig.Town_MIN_DISTANCE_BETWEEN + "m apart.");
+			return;
+		}
+		// Check to see if the player has enough money to join the specified faction
+		if( !holdings.hasEnough(cost) )
+		{
+			player.sendMessage("You need at least " + iConomy.format(cost) + " to create a " + RageConfig.townLevels.get(1).Name + ".");
 			return;
 		}
 		
-		// TODO: Check player iConomy balance, subtract appropriate amount
+		// Subtract from player balance
+		holdings.subtract(cost);
 		
-		// TODO: Also check against NPC town names
+		// TODO: Check against NPC town names
 		
 		// Create the town if name selected, otherwise return message
 		if( !townName.equals("") )
@@ -128,8 +137,8 @@ public class TownCommands
 			playerTown.centerPoint = new Location2D((int)player.getLocation().getX(), (int)player.getLocation().getZ());
 			playerTown.id_Faction = playerData.id_Faction;
 			playerTown.bankruptDate = null;
-			playerTown.townLevel = RageConfig.TownLevels.get(1);
-			playerTown.treasuryBalance = RageConfig.TownLevels.get(1).MinimumBalance;
+			playerTown.townLevel = RageConfig.townLevels.get(1);
+			playerTown.treasuryBalance = RageConfig.townLevels.get(1).MinimumBalance;
 			playerTown.mayor = playerData.name;
 			playerTown.world = player.getWorld();
 			
@@ -264,7 +273,7 @@ public class TownCommands
 		for( PlayerTown town : towns )
 		{
 			if( Factions.getName(town.id_Faction).equalsIgnoreCase(factionName) || factionName.equals("") )
-				player.sendMessage(town.id_Faction + ": " + town.townName + " (" + town.getLevel().Name + ")");
+				player.sendMessage(Factions.getName(town.id_Faction) + ": " + town.townName + " (" + town.getLevel().Name + ")");
 		}
 	}
 	
@@ -319,7 +328,7 @@ public class TownCommands
 		}
 		
 		// Load the data for the target town level
-		TownLevel targetLevel = RageConfig.TownLevels.get(playerTown.townLevel.Level + 1);
+		TownLevel targetLevel = RageConfig.townLevels.get(playerTown.townLevel.Level + 1);
 		
 		// If the upgrade would make the current town a capitol...
 		if( targetLevel.IsCapitol )
@@ -340,7 +349,7 @@ public class TownCommands
 		// Check treasury balance
 		if( playerTown.treasuryBalance < targetLevel.InitialCost )
 		{
-			player.sendMessage("You need at least " + targetLevel.InitialCost + " Coins to upgrade your town to a " + targetLevel.Name + ".");
+			player.sendMessage("You need at least " + iConomy.format(targetLevel.InitialCost) + " in your treasury to upgrade your town to a " + targetLevel.Name + ".");
 			return;
 		}
 		
@@ -348,7 +357,7 @@ public class TownCommands
 		if( isConfirmed ) 
 		{
 			// Update PlayerTowns; subtract balance from treasury; also add minimum balance
-			playerTown.townLevel = RageConfig.TownLevels.get(playerTown.townLevel.Level + 1);
+			playerTown.townLevel = RageConfig.townLevels.get(playerTown.townLevel.Level + 1);
 			playerTown.treasuryBalance = playerTown.treasuryBalance - targetLevel.InitialCost + targetLevel.MinimumBalance;
 			playerTown.buildRegion();
 			playerTown.createBorder();

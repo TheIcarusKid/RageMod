@@ -57,7 +57,7 @@ public class RMBlockListener extends BlockListener
     	if( block.getType() == Material.BED_BLOCK )
     	{
     		// /home: bed inside capitol lot
-			if( RageZones.IsInZoneA(block.getLocation()) )
+			if( RageZones.isInZoneA(block.getLocation()) )
 			{
 				for( Lot lot : playerData.lots )
 				{
@@ -72,7 +72,7 @@ public class RMBlockListener extends BlockListener
 				}
 			}
 			// /spawn: for beds in player towns
-			else if( RageZones.IsInZoneB(block.getLocation()) )
+			else if( RageZones.isInZoneB(block.getLocation()) )
 			{
 				PlayerTown playerTown = PlayerTowns.getCurrentTown(block.getLocation());
 
@@ -111,7 +111,7 @@ public class RMBlockListener extends BlockListener
     	if( block.getType() == Material.BED_BLOCK )
     	{
     		// /home: bed inside capitol lot
-			if( RageZones.IsInZoneA(block.getLocation()) && playerData.isMember )
+			if( RageZones.isInZoneA(block.getLocation()) && playerData.isMember )
 			{
 				for( Lot lot : playerData.lots )
 				{
@@ -132,7 +132,7 @@ public class RMBlockListener extends BlockListener
 				}
 			}
 			// /spawn: for beds in player towns
-			else if( RageZones.IsInZoneB(block.getLocation()) )
+			else if( RageZones.isInZoneB(block.getLocation()) )
 			{
 				PlayerTown playerTown = PlayerTowns.getCurrentTown(block.getLocation());
 
@@ -149,7 +149,7 @@ public class RMBlockListener extends BlockListener
 	    			HashMap<String, Location> spawns = RageMod.Database.getSpawnLocations(playerTown.id_PlayerTown);
 	    			for( String resident : spawns.keySet() )
 	    			{
-	    				if( block.getLocation().distance(spawns.get(resident)) < RageConfig.Town_DistanceBetweenBeds && !resident.equals(playerData.name) )
+	    				if( block.getLocation().distance(spawns.get(resident)) < RageConfig.Town_DISTANCE_BETWEEN_BEDS && !resident.equals(playerData.name) )
 	    				{
 	    					player.sendMessage("This bed is too close to " + resident + "'s bed - spawn not set.");
 	    					event.setCancelled(true);
@@ -176,7 +176,7 @@ public class RMBlockListener extends BlockListener
     	
     	// *** ZONE A (Neutral Zone) ***
     	// See if player is in capitol
-    	if( RageZones.IsInZoneA(location) && RageZones.IsInCapitol(location) )
+    	if( RageZones.isInZoneA(location) && RageZones.isInCapitol(location) )
     	{
     		// See if the player is inside a lot, and if they own it
     		if( !playerData.isInsideLot(location) && !RageMod.permissionHandler.has(player, "ragemod.build.capitol") )
@@ -197,7 +197,7 @@ public class RMBlockListener extends BlockListener
     		}
     	}
     	// *** ZONE B (War Zone) ***
-    	else if( RageZones.IsInZoneB(location) )
+    	else if( RageZones.isInZoneB(location) )
     	{
     		PlayerTown playerTown = PlayerTowns.getCurrentTown(location);
     		

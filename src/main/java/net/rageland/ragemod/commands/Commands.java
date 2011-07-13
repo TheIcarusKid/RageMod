@@ -19,8 +19,8 @@ public class Commands
 	// /zone
 	public static void zone(Player player)
 	{
-		player.sendMessage("Your current zone is " + RageZones.GetName(player.getLocation()) 
-				+ " and distance from spawn is " + (int)RageZones.GetDistanceFromSpawn(player.getLocation()));
+		player.sendMessage("Your current zone is " + RageZones.getName(player.getLocation()) 
+				+ " and distance from spawn is " + (int)RageZones.getDistanceFromSpawn(player.getLocation()));
 	}
 
 	// /home [player_name]

@@ -12,6 +12,7 @@ package net.rageland.ragemod;
 import java.util.HashMap;
 
 import net.rageland.ragemod.RageZones.Zone;
+import net.rageland.ragemod.commands.CompassCommands;
 import net.rageland.ragemod.commands.DebugCommands;
 import net.rageland.ragemod.commands.FactionCommands;
 import net.rageland.ragemod.commands.LotCommands;
@@ -59,12 +60,10 @@ public class RMPlayerListener extends PlayerListener
     	PlayerData playerData = Players.PlayerLogin(player.getName());    	  
     	
     	// Set the state info
-    	playerData.currentZone = RageZones.GetCurrentZone(player.getLocation());
+    	playerData.currentZone = RageZones.getCurrentZone(player.getLocation());
     	playerData.currentTown = PlayerTowns.getCurrentTown(player.getLocation());
-    	playerData.isInCapitol = RageZones.IsInCapitol(player.getLocation());
+    	playerData.isInCapitol = RageZones.isInCapitol(player.getLocation());
     	Players.Update(playerData);
-    	
-    	System.out.println(playerData.name + "'s spawn: " + playerData.spawn_X + ", " + playerData.spawn_Y + ", " + playerData.spawn_Z);
     }
     
     // Process commands
@@ -102,20 +101,71 @@ public class RMPlayerListener extends PlayerListener
     		event.setCancelled(true);
     	}
     	
-    	// ********* LOT COMMANDS *********
-    	else if( split[0].equalsIgnoreCase("/lot") )
+    	// ********* COMPASS COMMANDS *********
+    	else if( split[0].equalsIgnoreCase("/compass") )
     	{
     		if( split.length < 2 || split.length > 3 )
     		{
+    			player.sendMessage("Compass commands: <required> [optional]");
+    			if( true )
+    				player.sendMessage("   /compass lot <lot_code>    (points compass to specified lot)");
+    			if( true )
+    				player.sendMessage("   /compass spawn             (points compass to world spawn)");
+    			if( playerData.townName.equals("") )
+    				player.sendMessage("   /compass town <town_name>  (points compass to specified town)");
+    			else
+    				player.sendMessage("   /compass town [town_name]  (points compass to town)");
+    		}
+    		else if( split[1].equalsIgnoreCase("lot") )
+    		{
+    			if( split.length == 3 )
+    				CompassCommands.lot(player, split[2]); 
+    			else
+        			player.sendMessage("Usage: /compass lot <lot_code>"); 
+    		}
+    		else if( split[1].equalsIgnoreCase("spawn") )
+    		{
+    			CompassCommands.spawn(player);
+    		}
+    		else if( split[1].equalsIgnoreCase("town") )
+    		{
+    			if( split.length == 2 && !playerData.townName.equals("") )
+    				CompassCommands.town(player, playerData.townName);
+    			else if( split.length == 3 )
+    				CompassCommands.town(player, split[2]);
+        		else
+        			player.sendMessage("Usage: /town info <town_name>");
+    		}
+    		else
+    			player.sendMessage("Type /compass to see a list of available commands.");
+    		event.setCancelled(true);
+    	}
+    	
+    	// ********* LOT COMMANDS *********
+    	else if( split[0].equalsIgnoreCase("/lot") )
+    	{
+    		if( split.length < 2 || split.length > 4 )
+    		{
     			player.sendMessage("Lot commands: <required> [optional]");
+    			if( RageMod.permissionHandler.has(player, "ragemod.lot.assign") )
+    				player.sendMessage("   /lot assign <lot_code> <player_name> (gives lot to player)");
     			if( true )
     				player.sendMessage("   /lot check              (returns info on the current lot)");
     			if( true )
     				player.sendMessage("   /lot claim [lot_code]   (claims the specified or current lot)");
+    			if( RageMod.permissionHandler.has(player, "ragemod.lot.evict") )
+    				player.sendMessage("   /lot evict <lot_code>   (sets specified lot to 'unclaimed')");
     			if( playerData.lots.size() > 0 )
     				player.sendMessage("   /lot list               (lists all lots you own)");
     			if( playerData.lots.size() > 0 )
     				player.sendMessage("   /lot unclaim [lot_code] (unclaims the specified lot)");
+    		}
+    		else if( split[1].equalsIgnoreCase("assign") )
+    		{
+    			if( split.length == 4 )
+    				LotCommands.assign(player, split[2], split[3]); 
+    			else
+        			player.sendMessage("Usage: /lot assign <lot_code> <player_name>"); 
     		}
     		else if( split[1].equalsIgnoreCase("check") )
     		{
@@ -129,6 +179,13 @@ public class RMPlayerListener extends PlayerListener
     				LotCommands.claim(player, split[2]); 
     			else
         			player.sendMessage("Usage: /lot claim [lot_code]"); 
+    		}
+    		else if( split[1].equalsIgnoreCase("evict") )
+    		{
+    			if( split.length == 3 )
+    				LotCommands.evict(player, split[2]); 
+    			else
+        			player.sendMessage("Usage: /lot evict <lot_code>"); 
     		}
     		else if( split[1].equalsIgnoreCase("list") )
     		{
@@ -254,6 +311,8 @@ public class RMPlayerListener extends PlayerListener
     			player.sendMessage("Faction commands: <required> [optional]");
     			if( playerData.id_Faction == 0 )
     				player.sendMessage("   /faction join     (used to join a faction)");
+    			if( playerData.id_Faction != 0 )
+    				player.sendMessage("   /faction leave    (leaves your faction)");
     			if( true )
     				player.sendMessage("   /faction stats    (displays stats on each faction)");
     		}
@@ -265,6 +324,19 @@ public class RMPlayerListener extends PlayerListener
     				FactionCommands.join(player, split[2]); 
     			else
         			player.sendMessage("Usage: /faction join [faction_name]"); 
+    		}
+    		else if( split[1].equalsIgnoreCase("leave") )
+    		{
+    			if( split.length == 2 )
+    				FactionCommands.leave(player, false);
+        		else if( split.length == 3 && split[2].equalsIgnoreCase("confirm"))
+        			FactionCommands.leave(player, true);
+        		else
+        			player.sendMessage("Usage: /faction leave [confirm]");
+    		}
+    		else if( split[1].equalsIgnoreCase("stats") )
+    		{
+    			FactionCommands.stats(player);
     		}
     		else
     			player.sendMessage("Type /faction to see a list of available commands.");
@@ -278,11 +350,20 @@ public class RMPlayerListener extends PlayerListener
     		{
     			player.sendMessage("Debug commands: <required> [optional]");
     			if( true )
-    				player.sendMessage("   /debug donation     (displays amount of donations in last month)");
+    				player.sendMessage("   /debug donation        (displays amount of donations in last month)");
+    			if( true )
+    				player.sendMessage("   /debug sanctum <level> (attempts to build sanctum floor in your location)");
     		}
     		else if( split[1].equalsIgnoreCase("donation") )
     		{
     			DebugCommands.donation(player);
+    		}
+    		else if( split[1].equalsIgnoreCase("sanctum") )
+    		{
+    			if( split.length == 3 )
+    				DebugCommands.sanctum(player, split[2]); 
+    			else
+        			player.sendMessage("Usage: /debug sanctum <level>"); 
     		}
     		else
     			player.sendMessage("Type /debug to see a list of available commands.");
@@ -301,10 +382,10 @@ public class RMPlayerListener extends PlayerListener
         	event.getFrom().getBlockZ() != event.getTo().getBlockZ() )
         {
         	// Check to see if the player has changed zones
-        	if( playerData.currentZone != RageZones.GetCurrentZone(player.getLocation()))
+        	if( playerData.currentZone != RageZones.getCurrentZone(player.getLocation()))
         	{
-        		playerData.currentZone = RageZones.GetCurrentZone(player.getLocation());
-        		player.sendMessage("Your current zone is now " + RageZones.GetName(playerData.currentZone));
+        		playerData.currentZone = RageZones.getCurrentZone(player.getLocation());
+        		player.sendMessage("Your current zone is now " + RageZones.getName(playerData.currentZone));
         		Players.Update(playerData);
         	}
         	
@@ -314,7 +395,7 @@ public class RMPlayerListener extends PlayerListener
         		// Check to see if the player has entered or left the capitol
         		if( playerData.isInCapitol )
         		{
-        			if( !RageZones.IsInCapitol(player.getLocation()) )
+        			if( !RageZones.isInCapitol(player.getLocation()) )
         			{
         				player.sendMessage("Now leaving the capitol of " + RageConfig.Capitol_Name);
         				playerData.isInCapitol = false;
@@ -323,7 +404,7 @@ public class RMPlayerListener extends PlayerListener
         		}
         		else
         		{
-        			if( RageZones.IsInCapitol(player.getLocation()) )
+        			if( RageZones.isInCapitol(player.getLocation()) )
         			{
         				player.sendMessage("Now entering the capitol of " + RageConfig.Capitol_Name);
         				playerData.isInCapitol = true;

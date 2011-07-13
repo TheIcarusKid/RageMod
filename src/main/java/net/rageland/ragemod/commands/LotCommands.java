@@ -2,6 +2,7 @@ package net.rageland.ragemod.commands;
 
 import net.rageland.ragemod.RageConfig;
 import net.rageland.ragemod.RageMod;
+import net.rageland.ragemod.RageZones;
 import net.rageland.ragemod.data.Lot;
 import net.rageland.ragemod.data.Lot.LotCategory;
 import net.rageland.ragemod.data.Lots;
@@ -13,10 +14,60 @@ import org.bukkit.entity.Player;
 //The Commands classes handle all the state checking for typed commands, then send them to the database if approved
 public class LotCommands 
 {
+	// /lot assign <lot_code> <player_name>
+	public static void assign(Player player, String lotCode, String targetPlayerName) 
+	{
+		PlayerData targetPlayerData = Players.Get(targetPlayerName);
+		Lot lot = Lots.get(lotCode);
+		
+		// Make sure the player has permission to perform this command
+		if( !RageMod.permissionHandler.has(player, "ragemod.lot.assign") )
+		{
+			player.sendMessage("You do not have permission to perform that command.");
+			return;
+		}
+		// Check to see if target player exists
+		if( targetPlayerData == null )
+		{
+			player.sendMessage("Player " + targetPlayerName + " does not exist.");
+			return;
+		}
+		// lot will be null if code is invalid
+		if( lot == null )
+		{	
+			player.sendMessage(lotCode + " is not a valid lot code.  (consult the online map)");
+			return;
+		}
+		// See if the lot is already claimed
+		if( !lot.owner.equals("") )
+		{
+			player.sendMessage("Lot " + lot.getLotCode() + " is already owned by " + lot.owner + ".");
+			return;
+		}
+		
+		// All checks have succeeded - give the lot to the player
+		RageMod.Database.lotClaim(targetPlayerData, lot);
+		
+		// Update the playerData
+		targetPlayerData.lots.add(lot);
+		Players.Update(targetPlayerData);
+		
+		// Update Lots to set the owner
+		lot.owner = targetPlayerData.name;
+		Lots.put(lot);
+		
+		player.sendMessage(targetPlayerData.name + " now owns lot " + lot.getLotCode() + ".");
+		
+	}
+	
 	// /lot check
 	public static void check(Player player)
 	{		
-		// TODO: Make sure the player is in the capitol
+		// Make sure the player is in the capitol
+		if( !RageZones.isInCapitol(player.getLocation()) )
+		{
+			player.sendMessage("You must be in " + RageConfig.Capitol_Name + " to use this command.");
+		}
 		
 		Lot lot = Lots.findCurrentLot(player.getLocation());
 		
@@ -92,8 +143,6 @@ public class LotCommands
 			}
 		}
 		
-		// TODO: Check donation status (implement a 2nd currency for buying lots?)
-		
 		// All checks have succeeded - give the lot to the player
 		RageMod.Database.lotClaim(playerData, lot);
 		
@@ -106,6 +155,46 @@ public class LotCommands
 		Lots.put(lot);
 		
 		player.sendMessage("You now own lot " + lot.getLotCode() + ".");
+	}
+	
+	// /lot assign <lot_code> <player_name>
+	public static void evict(Player player, String lotCode) 
+	{
+		Lot lot = Lots.get(lotCode);
+		
+		// Make sure the player has permission to perform this command
+		if( !RageMod.permissionHandler.has(player, "ragemod.lot.evict") )
+		{
+			player.sendMessage("You do not have permission to perform that command.");
+			return;
+		}		
+		// lot will be null if invalid
+		if( lot == null )
+		{	
+			player.sendMessage(lotCode + " is not a valid lot code.  (consult the online map)");
+			return;
+		}
+		// Make sure the lot is already claimed
+		if( lot.owner.equals("") )
+		{
+			player.sendMessage("Lot " + lot.getLotCode() + " is already unclaimed.");
+			return;
+		}
+		
+		// All checks have succeeded - remove the lot owner
+		RageMod.Database.lotUnclaim(lot);
+		
+		// Update the playerData
+		PlayerData targetPlayerData = Players.Get(lot.owner);
+		targetPlayerData.lots.remove(lot);
+		Players.Update(targetPlayerData);
+		
+		// Update Lots to set the owner
+		lot.owner = "";
+		Lots.put(lot);
+		
+		player.sendMessage(targetPlayerData.name + " has been evicted from lot " + lot.getLotCode() + ".");
+		
 	}
 
 	// /lot unclaim [lot_code]
@@ -178,4 +267,5 @@ public class LotCommands
 		}
 				
 	}
+	
 }

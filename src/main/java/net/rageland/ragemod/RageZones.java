@@ -38,12 +38,12 @@ public class RageZones {
     public RageZones (RageMod ragemod)
     {
     	// TODO: This feels redundant.  Maybe it will make more sense when the config is loading from a file.
-    	ZoneA_Name = RageConfig.ZoneA_Name;
-    	ZoneA_Border = RageConfig.ZoneA_Border;
-    	ZoneB_Name = RageConfig.ZoneB_Name;
-    	ZoneB_Border = RageConfig.ZoneB_Border;
-    	ZoneC_Name = RageConfig.ZoneC_Name;
-    	ZoneC_Border = RageConfig.ZoneC_Border;
+    	ZoneA_Name = RageConfig.Zone_NAME_A;
+    	ZoneA_Border = RageConfig.Zone_BORDER_A;
+    	ZoneB_Name = RageConfig.Zone_NAME_B;
+    	ZoneB_Border = RageConfig.Zone_BORDER_B;
+    	ZoneC_Name = RageConfig.Zone_NAME_C;
+    	ZoneC_Border = RageConfig.Zone_BORDER_C;
     	
     	// Load the capitol regions
     	Capitol_RegionA = new Region2D(RageConfig.Capitol_X1a, RageConfig.Capitol_Z1a, RageConfig.Capitol_X2a, RageConfig.Capitol_Z2a);
@@ -55,7 +55,7 @@ public class RageZones {
     
     // Returns the name of the zone the Location is currently in
     // TODO: Remove this and make calls to it use a combination of GetCurrentZone and GetName
-    public static String GetName(Location location) 
+    public static String getName(Location location) 
     {
     	double distanceFromSpawn = WorldSpawn.distance(location);
     	
@@ -72,7 +72,7 @@ public class RageZones {
     }
     
     // Return the name of the Zone matching the Zone enum
-    public static String GetName(Zone zone)
+    public static String getName(Zone zone)
     {
     	if( zone == Zone.A )
     		return ZoneA_Name;
@@ -87,7 +87,7 @@ public class RageZones {
     }
     
     // Calculates the player's current zone based on their location
-    public static Zone GetCurrentZone(Location location)
+    public static Zone getCurrentZone(Location location)
     {
 		double distanceFromSpawn = WorldSpawn.distance(location);
     	
@@ -103,42 +103,42 @@ public class RageZones {
     		return null;
     }
     
-    public static double GetDistanceFromSpawn(Location location)
+    public static double getDistanceFromSpawn(Location location)
     {
     	return WorldSpawn.distance(location);
     }
     
     // Returns whether or not the location is in Zone A
-    public static boolean IsInZoneA(Location location)
+    public static boolean isInZoneA(Location location)
     {
     	return ( WorldSpawn.distance(location) >= 0 && WorldSpawn.distance(location) <= ZoneA_Border );
     }
     
     // Returns whether or not the location is in Zone A
-    public static boolean IsInZoneB(Location location)
+    public static boolean isInZoneB(Location location)
     {
     	return ( WorldSpawn.distance(location) > ZoneA_Border && WorldSpawn.distance(location) <= ZoneB_Border );
     }
     
     // Returns whether or not the location is in Zone A
-    public static boolean IsInZoneC(Location location)
+    public static boolean isInZoneC(Location location)
     {
     	return ( WorldSpawn.distance(location) > ZoneB_Border && WorldSpawn.distance(location) <= ZoneC_Border );
     }
     
     // Returns whether the player is in the world capitol
-    public static boolean IsInCapitol(Location location)
+    public static boolean isInCapitol(Location location)
     {
     	return ( Capitol_RegionA.isInside(location) );
     }
     
     // Checks whether a specified action is allowed in the zone specified by 'location'
-    public static boolean CheckPermission(Location location, Action action)
+    public static boolean checkPermission(Location location, Action action)
     {
     	// Put the most frequently called checks at the beginning.  On that note, would it be 
     	// better to split this method into multiple methods to prevent having to do so many comparisons?
     	if(action == Action.TOWN_CREATE)
-    		return IsInZoneB(location);
+    		return isInZoneB(location);
     	
     	// If we haven't recognized the action, return false.  Should this throw an exception?
     	return false;

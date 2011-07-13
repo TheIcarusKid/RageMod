@@ -40,10 +40,10 @@ public class RageDB {
     	plugin = instance;
     	
     	url = RageConfig.DB_URL;
-    	databaseName = RageConfig.DB_DatabaseName;
-    	driver = RageConfig.DB_Driver;
-    	user = RageConfig.DB_User;
-    	password = RageConfig.DB_Password;
+    	databaseName = RageConfig.DB_NAME;
+    	driver = RageConfig.DB_DRIVER;
+    	user = RageConfig.DB_USER;
+    	password = RageConfig.DB_PASSWORD;
     	
         try
         {
@@ -110,12 +110,12 @@ public class RageDB {
         		currentTown.id_Faction = rs.getInt("ID_Faction");
         		currentTown.treasuryBalance = rs.getFloat("TreasuryBalance");
         		currentTown.bankruptDate = rs.getDate("BankruptDate");
-        		currentTown.townLevel = RageConfig.TownLevels.get(rs.getInt("TownLevel"));
+        		currentTown.townLevel = RageConfig.townLevels.get(rs.getInt("TownLevel"));
         		currentTown.mayor = rs.getString("Mayor");
         		currentTown.world = plugin.getServer().getWorld("world");
         		
         		currentTown.buildRegion();	        		
-        		towns.put(rs.getString("TownName"), currentTown);	 
+        		towns.put(rs.getString("TownName").toLowerCase(), currentTown);	 
         	}
         		
         	return towns;				
@@ -296,7 +296,7 @@ public class RageDB {
     		// Update the Players table to create the town association
     		updateString = 
 				"UPDATE Players SET " +
-				"ID_Faction = " + playerData.id_Faction + ", " +
+				"ID_Faction = " + (playerData.id_Faction == 0 ? "null" : playerData.id_Faction) + ", " +
 				"IsMember = " + (playerData.isMember ? 1 : 0) + ", " +
 				"MemberExpiration = " + playerData.memberExpiration + ", " +
 				"Bounty = " + playerData.bounty + ", " +
@@ -381,10 +381,10 @@ public class RageDB {
     		// TODO: Set default treasury balance from config
     		// Insert the new town into the PlayerTowns table
     		preparedStatement = conn.prepareStatement(
-    				"INSERT INTO PlayerTowns (TownName, XCoord, ZCoord, ID_Faction, TreasuryBalance, TownLevel) " +
+    				"INSERT INTO PlayerTowns (TownName, XCoord, ZCoord, ID_Faction, TreasuryBalance, TownLevel, DateCreated) " +
     				"VALUES ('" + townName + "', " + (int)player.getLocation().getX() + ", " + (int)player.getLocation().getZ() + ", " +  
     				"(SELECT ID_Faction FROM Players WHERE ID_Player = " + playerData.id_Player + "), " + 
-    				RageConfig.TownLevels.get(1).MinimumBalance + ", 1)",
+    				RageConfig.townLevels.get(1).MinimumBalance + ", 1, NOW())",
     				Statement.RETURN_GENERATED_KEYS);        		
     		preparedStatement.executeUpdate();
     		
@@ -441,8 +441,9 @@ public class RageDB {
     	{
     		// Update the Players table to remove the town association
     		preparedStatement = conn.prepareStatement(
-    				"UPDATE PlayerTowns SET TownLevel = (TownLevel + 1) WHERE TownName = '" + townName + "', " +
-    				"TreasuryBalance = (TreasuryBalance - " + cost + ")");
+    				"UPDATE PlayerTowns SET TownLevel = (TownLevel + 1), TreasuryBalance = (TreasuryBalance - " + cost + ") " +
+    				"WHERE TownName = '" + townName + "'" +
+    				"");
     		preparedStatement.executeUpdate();	
     	} 
     	catch (SQLException e) {
@@ -554,7 +555,7 @@ public class RageDB {
 	{
 		HashMap<String, Lot> lots = new HashMap<String, Lot>();
 		Lot currentLot = null;
-		int mult = RageConfig.Lot_Multiplier;
+		int mult = RageConfig.Lot_MULTIPLIER;
 		
     	try
     	{
@@ -576,10 +577,11 @@ public class RageDB {
         		currentLot.owner = rs.getString("Owner");
         		// X and Z are reversed >:(
         		currentLot.region = new Region2D(
-        				((rs.getInt("ZCoord")-1) * mult) + RageConfig.Lot_XOffset,
-        				((rs.getInt("XCoord")-1) * mult * -1) + RageConfig.Lot_ZOffset,
-        				((rs.getInt("ZCoord")-1) * mult) + RageConfig.Lot_XOffset + (rs.getInt("Height") * mult),
-        				((rs.getInt("XCoord")-1) * mult * -1) + RageConfig.Lot_ZOffset - (rs.getInt("Width") * mult));
+        				((rs.getInt("ZCoord")-1) * mult) + RageConfig.Lot_X_OFFSET,
+        				((rs.getInt("XCoord")-1) * mult * -1) + RageConfig.Lot_Z_OFFSET,
+        				((rs.getInt("ZCoord")-1) * mult) + RageConfig.Lot_X_OFFSET + (rs.getInt("Height") * mult),
+        				((rs.getInt("XCoord")-1) * mult * -1) + RageConfig.Lot_Z_OFFSET - (rs.getInt("Width") * mult));
+        		currentLot.world = plugin.getServer().getWorld("world");
     	        
         		lots.put(currentLot.getLotCode(), currentLot);	        		
         	}
@@ -602,7 +604,7 @@ public class RageDB {
     	{
     		// Update the Lots table to assign the owner
     		preparedStatement = conn.prepareStatement(
-    				"UPDATE Lots SET ID_Player = " + playerData.id_Player + " WHERE ID_Lot = " + lot.id_Lot);
+    				"UPDATE Lots SET ID_Player = " + playerData.id_Player + ", DateClaimed = NOW() WHERE ID_Lot = " + lot.id_Lot);
     		preparedStatement.executeUpdate();	
     	} 
     	catch (SQLException e) {
@@ -612,7 +614,6 @@ public class RageDB {
 		} finally {
 			close();
 		}
-		
 	}
 
 	// Reset a lot's owner
@@ -622,7 +623,7 @@ public class RageDB {
     	{
     		// Update the Lots table to assign the owner
     		preparedStatement = conn.prepareStatement(
-    				"UPDATE Lots SET ID_Player = NULL WHERE ID_Lot = " + lot.id_Lot);
+    				"UPDATE Lots SET ID_Player = NULL, DateClaimed = NULL WHERE ID_Lot = " + lot.id_Lot);
     		preparedStatement.executeUpdate();	
     	} 
     	catch (SQLException e) {

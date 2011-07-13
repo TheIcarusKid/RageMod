@@ -82,7 +82,9 @@ public class RageMod extends JavaPlugin {
         pluginManager.registerEvent(Event.Type.BLOCK_BREAK, blockListener, Priority.Normal, this);
         pluginManager.registerEvent(Event.Type.BLOCK_PLACE, blockListener, Priority.Normal, this);
         
-        pluginManager.registerEvent(Event.Type.ENTITY_DAMAGE, entityListener, Priority.Normal, this);
+        pluginManager.registerEvent(Event.Type.ENTITY_DAMAGE, entityListener, Priority.Highest, this);
+        pluginManager.registerEvent(Event.Type.ENTITY_INTERACT, entityListener, Priority.High, this);
+        pluginManager.registerEvent(Event.Type.CREATURE_SPAWN, entityListener, Priority.Normal, this);
         
         setupPermissions();
         System.out.println( "RageMod is enabled!" );
