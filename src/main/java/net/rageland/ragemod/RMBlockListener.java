@@ -38,7 +38,7 @@ public class RMBlockListener extends BlockListener
     public void onBlockBreak(BlockBreakEvent event) 
     {
     	Player player = event.getPlayer();
-    	PlayerData playerData = Players.Get(player.getName());
+    	PlayerData playerData = Players.get(player.getName());
     	Block block = event.getBlock();
     	
     	if (event.isCancelled()) 
@@ -66,8 +66,8 @@ public class RMBlockListener extends BlockListener
 						playerData.clearHome();
 		    			player.sendMessage("You no longer have a home point.");
 		    			// Update both memory and database
-		    			Players.Update(playerData);
-		    			RageMod.Database.updatePlayer(playerData);
+		    			Players.update(playerData);
+		    			RageMod.database.updatePlayer(playerData);
 					}
 				}
 			}
@@ -81,8 +81,8 @@ public class RMBlockListener extends BlockListener
 	    			playerData.clearSpawn();
 	    			player.sendMessage("You no longer have a spawn point.");
 	    			// Update both memory and database
-	    			Players.Update(playerData);
-	    			RageMod.Database.updatePlayer(playerData);
+	    			Players.update(playerData);
+	    			RageMod.database.updatePlayer(playerData);
 	    		}
 			}
     	}
@@ -92,7 +92,7 @@ public class RMBlockListener extends BlockListener
     public void onBlockPlace(BlockPlaceEvent event) 
     {
     	Player player = event.getPlayer();
-    	PlayerData playerData = Players.Get(player.getName());
+    	PlayerData playerData = Players.get(player.getName());
     	Block block = event.getBlock();
     	
     	if (event.isCancelled()) 
@@ -126,8 +126,8 @@ public class RMBlockListener extends BlockListener
 						playerData.setHome(block.getLocation());
 		    			player.sendMessage("Your home location has now been set.");
 		    			// Update both memory and database
-		    			Players.Update(playerData);
-		    			RageMod.Database.updatePlayer(playerData);
+		    			Players.update(playerData);
+		    			RageMod.database.updatePlayer(playerData);
 					}
 				}
 			}
@@ -146,7 +146,7 @@ public class RMBlockListener extends BlockListener
 					}
 	    			
 	    			// Make sure the location is not too close to another player's spawn
-	    			HashMap<String, Location> spawns = RageMod.Database.getSpawnLocations(playerTown.id_PlayerTown);
+	    			HashMap<String, Location> spawns = RageMod.database.getSpawnLocations(playerTown.id_PlayerTown);
 	    			for( String resident : spawns.keySet() )
 	    			{
 	    				if( block.getLocation().distance(spawns.get(resident)) < RageConfig.Town_DISTANCE_BETWEEN_BEDS && !resident.equals(playerData.name) )
@@ -160,8 +160,8 @@ public class RMBlockListener extends BlockListener
 	    			playerData.setSpawn(block.getLocation());
 	    			player.sendMessage("Your spawn location has now been set.");
 	    			// Update both memory and database
-	    			Players.Update(playerData);
-	    			RageMod.Database.updatePlayer(playerData);
+	    			Players.update(playerData);
+	    			RageMod.database.updatePlayer(playerData);
 	    		}
 			}
     	}
@@ -170,7 +170,7 @@ public class RMBlockListener extends BlockListener
     // Generic permission edit handler that handles multiple types of block editing
     private boolean canEditBlock(BlockEvent event, Player player)
     {
-    	PlayerData playerData = Players.Get(player.getName());
+    	PlayerData playerData = Players.get(player.getName());
     	Block block = event.getBlock();
     	Location location = block.getLocation();
     	

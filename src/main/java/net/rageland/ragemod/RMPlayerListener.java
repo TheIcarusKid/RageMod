@@ -57,20 +57,20 @@ public class RMPlayerListener extends PlayerListener
     public void onPlayerJoin(PlayerJoinEvent event)
     {
     	Player player = event.getPlayer();    	
-    	PlayerData playerData = Players.PlayerLogin(player.getName());    	  
+    	PlayerData playerData = Players.playerLogin(player.getName());    	  
     	
     	// Set the state info
     	playerData.currentZone = RageZones.getCurrentZone(player.getLocation());
     	playerData.currentTown = PlayerTowns.getCurrentTown(player.getLocation());
     	playerData.isInCapitol = RageZones.isInCapitol(player.getLocation());
-    	Players.Update(playerData);
+    	Players.update(playerData);
     }
     
     // Process commands
     public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) 
     {
     	Player player = event.getPlayer();
-    	PlayerData playerData = Players.Get(player.getName());
+    	PlayerData playerData = Players.get(player.getName());
     	
     	String[] split = event.getMessage().split(" ");
     	
@@ -215,6 +215,8 @@ public class RMPlayerListener extends PlayerListener
     				player.sendMessage("   /town add <player_name>     (adds a new resident)");
     			if( playerData.townName.equals("") )
     				player.sendMessage("   /town create [town_name]    (creates a new town)");
+    			if( !playerData.townName.equals("") )
+    				player.sendMessage("   /town deposit <amount>      (deposits into town treasury)");
     			if( playerData.isMayor )
     				player.sendMessage("   /town evict <player_name>   (removes a resident)");
     			if( playerData.townName.equals("") )
@@ -225,19 +227,23 @@ public class RMPlayerListener extends PlayerListener
     				player.sendMessage("   /town leave                 (leaves your current town)");
     			if( true )
     				player.sendMessage("   /town list [faction]        (lists all towns in the world)");
+    			if( playerData.isMayor )
+    				player.sendMessage("   /town minimum <amount>      (sets the min. treasury balance)");
     			if( playerData.townName.equals("") )
     				player.sendMessage("   /town residents <town_name> (lists all residents of town)");
     			else
     				player.sendMessage("   /town residents [town_name] (lists all residents of town)");
     			if( playerData.isMayor )
     				player.sendMessage("   /town upgrade [confirm]     (upgrades your town)");
+    			if( !playerData.townName.equals("") )
+    				player.sendMessage("   /town withdrawl <amount>    (withdrawls from town treasury)");
     		}
     		else if( split[1].equalsIgnoreCase("add") )
     		{
-    			if( split.length != 3 )
-        			player.sendMessage("Usage: /town add <player_name>");
-        		else
+    			if( split.length == 3 )
         			TownCommands.add(player, split[2]); 
+        		else
+        			player.sendMessage("Usage: /town add <player_name>");
     		}
     		else if( split[1].equalsIgnoreCase("create") )
     		{
@@ -249,14 +255,21 @@ public class RMPlayerListener extends PlayerListener
     			else if( split.length == 3 )
     				TownCommands.create(player, split[2]); 
     			else
-        			player.sendMessage("Usage: /town create [town_name]"); 
+        			player.sendMessage("Usage: /town create [town_name] (use 'quotes' for multiple-word town names)"); 
+    		}
+    		else if( split[1].equalsIgnoreCase("deposit") )
+    		{
+    			if( split.length == 3 )
+    				TownCommands.deposit(player, split[2]); 
+        		else
+        			player.sendMessage("Usage: /town deposit <amount>");
     		}
     		else if( split[1].equalsIgnoreCase("evict") )
     		{
-    			if( split.length != 3 )
-        			player.sendMessage("Usage: /town evict <player_name>");
+    			if( split.length == 3 )
+    				TownCommands.evict(player, split[2]); 
         		else
-        			TownCommands.evict(player, split[2]); 
+        			player.sendMessage("Usage: /town evict <player_name>");
     		}
     		else if( split[1].equalsIgnoreCase("info") )
     		{
@@ -280,6 +293,13 @@ public class RMPlayerListener extends PlayerListener
         		else
         			player.sendMessage("Usage: /town list [faction]");
     		}
+    		else if( split[1].equalsIgnoreCase("minimum") )
+    		{
+    			if( split.length == 3 )
+    				TownCommands.minimum(player, split[2]); 
+        		else
+        			player.sendMessage("Usage: /town minimum <amount>");
+    		}
     		else if( split[1].equalsIgnoreCase("residents") )
     		{
     			if( split.length == 2 && !playerData.townName.equals("") )
@@ -297,6 +317,13 @@ public class RMPlayerListener extends PlayerListener
         			TownCommands.upgrade(player, true);
         		else
         			player.sendMessage("Usage: /town upgrade [confirm]");
+    		}
+    		else if( split[1].equalsIgnoreCase("withdrawl") )
+    		{
+    			if( split.length == 3 )
+    				TownCommands.withdrawl(player, split[2]); 
+        		else
+        			player.sendMessage("Usage: /town withdrawl <amount>");
     		}
     		else
     			player.sendMessage("Type /town to see a list of available commands.");
@@ -375,7 +402,7 @@ public class RMPlayerListener extends PlayerListener
     public void onPlayerMove(PlayerMoveEvent event) 
     {
         Player player = event.getPlayer();
-        PlayerData playerData = Players.Get(player.getName());
+        PlayerData playerData = Players.get(player.getName());
         World world = player.getWorld();
 
         if( event.getFrom().getBlockX() != event.getTo().getBlockX() ||
@@ -386,7 +413,7 @@ public class RMPlayerListener extends PlayerListener
         	{
         		playerData.currentZone = RageZones.getCurrentZone(player.getLocation());
         		player.sendMessage("Your current zone is now " + RageZones.getName(playerData.currentZone));
-        		Players.Update(playerData);
+        		Players.update(playerData);
         	}
         	
         	// *** ZONE A (Neutral Zone) ***
@@ -399,7 +426,7 @@ public class RMPlayerListener extends PlayerListener
         			{
         				player.sendMessage("Now leaving the capitol of " + RageConfig.Capitol_Name);
         				playerData.isInCapitol = false;
-        				Players.Update(playerData);
+        				Players.update(playerData);
         			}
         		}
         		else
@@ -408,7 +435,7 @@ public class RMPlayerListener extends PlayerListener
         			{
         				player.sendMessage("Now entering the capitol of " + RageConfig.Capitol_Name);
         				playerData.isInCapitol = true;
-        				Players.Update(playerData);
+        				Players.update(playerData);
         			}
         		}
         	}
@@ -421,9 +448,9 @@ public class RMPlayerListener extends PlayerListener
 	        		PlayerTown currentTown = PlayerTowns.getCurrentTown(player.getLocation());
 	        		if( currentTown != null )
 	        		{
-	        			player.sendMessage("Now entering the " + currentTown.townLevel.Name.toLowerCase() + " of " + currentTown.townName);
+	        			player.sendMessage("Now entering the " + currentTown.townLevel.name.toLowerCase() + " of " + currentTown.townName);
 	        			playerData.currentTown = currentTown;
-	        			Players.Update(playerData);
+	        			Players.update(playerData);
 	        		}
 	        	}
 	        	else
@@ -431,9 +458,9 @@ public class RMPlayerListener extends PlayerListener
 	        		PlayerTown currentTown = PlayerTowns.getCurrentTown(player.getLocation());
 	        		if( currentTown == null )
 	        		{
-	        			player.sendMessage("Now leaving the " + playerData.currentTown.townLevel.Name.toLowerCase() + " of " + playerData.currentTown.townName);
+	        			player.sendMessage("Now leaving the " + playerData.currentTown.townLevel.name.toLowerCase() + " of " + playerData.currentTown.townName);
 	        			playerData.currentTown = null;
-	        			Players.Update(playerData);
+	        			Players.update(playerData);
 	        		}
 	        	}
         	}
@@ -444,7 +471,7 @@ public class RMPlayerListener extends PlayerListener
     public void onPlayerInteract(PlayerInteractEvent event) 
     {
     	Player player = event.getPlayer();
-    	PlayerData playerData = Players.Get(player.getName());
+    	PlayerData playerData = Players.get(player.getName());
     	Action action = event.getAction();
     	Block block = event.getClickedBlock();
 
@@ -458,7 +485,7 @@ public class RMPlayerListener extends PlayerListener
     public void onPlayerRespawn(PlayerRespawnEvent event) 
     {
     	Player player = event.getPlayer();
-    	PlayerData playerData = Players.Get(player.getName());
+    	PlayerData playerData = Players.get(player.getName());
     	
     	if( playerData.spawn_IsSet )
     	{

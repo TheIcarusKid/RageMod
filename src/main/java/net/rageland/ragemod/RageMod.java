@@ -2,6 +2,7 @@ package net.rageland.ragemod;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Timer;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -19,6 +20,8 @@ import net.rageland.ragemod.data.Lots;
 import net.rageland.ragemod.data.PlayerData;
 import net.rageland.ragemod.data.PlayerTowns;
 import net.rageland.ragemod.data.Players;
+import net.rageland.ragemod.data.Tasks;
+
 import com.iConomy.*;
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
@@ -45,15 +48,17 @@ public class RageMod extends JavaPlugin {
     private Server server; 
     private PluginManager pluginManager;
     public iConomy iConomy;
+    public static PermissionHandler permissionHandler;
 
     public static String mainDirectory = "plugins/RageMod";
-    public static PermissionHandler permissionHandler;
     public File file = new File(mainDirectory + File.separator + "config.yml");
+    private Timer rageTimer = new Timer(true);
     
     // Static utility classes
-    public static RageConfig Config = null;
-    public static RageDB Database = null;  
-    public static RageZones Zones = null;
+    public static RageConfig config = null;
+    public static RageDB database = null;  
+    public static RageZones zones = null;
+    
     
     public RageMod() 
     {
@@ -90,17 +95,20 @@ public class RageMod extends JavaPlugin {
         System.out.println( "RageMod is enabled!" );
         
         // Initialize the static classes - make sure to initialize Config first as ther other constuctors rely on it
-        Config = new RageConfig();
-        Database = new RageDB(this);
-        Zones = new RageZones(this);
+        config = new RageConfig();
+        database = new RageDB(this);
+        zones = new RageZones(this);
         
         // Load the HashMaps for DB data
         PlayerTowns.getInstance().loadPlayerTowns();
-        Players.GetInstance();	// Player data is not loaded until players log on
+        Players.getInstance();	// Player data is not loaded until players log on
         Lots.getInstance().loadLots();
-        Factions.GetInstance().loadFactions();
+        Factions.getInstance().loadFactions();
+        Tasks.getInstance().loadTaskTimes();
         
-        // Run some tests because of stupid MC validation preventing me from testing in-game >:(
+        rageTimer.schedule(new RageTimer(this), (long)0, (long)(1000));
+        
+        // Run basic debug tests
         runTests();
         
         

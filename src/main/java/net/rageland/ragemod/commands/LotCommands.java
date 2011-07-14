@@ -17,7 +17,7 @@ public class LotCommands
 	// /lot assign <lot_code> <player_name>
 	public static void assign(Player player, String lotCode, String targetPlayerName) 
 	{
-		PlayerData targetPlayerData = Players.Get(targetPlayerName);
+		PlayerData targetPlayerData = Players.get(targetPlayerName);
 		Lot lot = Lots.get(lotCode);
 		
 		// Make sure the player has permission to perform this command
@@ -46,11 +46,11 @@ public class LotCommands
 		}
 		
 		// All checks have succeeded - give the lot to the player
-		RageMod.Database.lotClaim(targetPlayerData, lot);
+		RageMod.database.lotClaim(targetPlayerData, lot);
 		
 		// Update the playerData
 		targetPlayerData.lots.add(lot);
-		Players.Update(targetPlayerData);
+		Players.update(targetPlayerData);
 		
 		// Update Lots to set the owner
 		lot.owner = targetPlayerData.name;
@@ -88,7 +88,7 @@ public class LotCommands
 	// /lot claim [lot_code]
 	public static void claim(Player player, String lotCode) 
 	{
-		PlayerData playerData = Players.Get(player.getName());
+		PlayerData playerData = Players.get(player.getName());
 		Lot lot;
 		
 		// Get the current lot, whether blank (current location) or typed
@@ -133,7 +133,7 @@ public class LotCommands
 		// If the player is claiming a member lot, see if they have donated the appropriate amount
 		if( lot.isMemberLot() )
 		{
-			int donation = RageMod.Database.getRecentDonations(playerData.id_Player);
+			int donation = RageMod.database.getRecentDonations(playerData.id_Player);
 			
 			if( donation < lot.getPrice() )
 			{
@@ -144,11 +144,11 @@ public class LotCommands
 		}
 		
 		// All checks have succeeded - give the lot to the player
-		RageMod.Database.lotClaim(playerData, lot);
+		RageMod.database.lotClaim(playerData, lot);
 		
 		// Update the playerData
 		playerData.lots.add(lot);
-		Players.Update(playerData);
+		Players.update(playerData);
 		
 		// Update Lots to set the owner
 		lot.owner = playerData.name;
@@ -182,12 +182,12 @@ public class LotCommands
 		}
 		
 		// All checks have succeeded - remove the lot owner
-		RageMod.Database.lotUnclaim(lot);
+		RageMod.database.lotUnclaim(lot);
 		
 		// Update the playerData
-		PlayerData targetPlayerData = Players.Get(lot.owner);
+		PlayerData targetPlayerData = Players.get(lot.owner);
 		targetPlayerData.lots.remove(lot);
-		Players.Update(targetPlayerData);
+		Players.update(targetPlayerData);
 		
 		// Update Lots to set the owner
 		lot.owner = "";
@@ -200,7 +200,7 @@ public class LotCommands
 	// /lot unclaim [lot_code]
 	public static void unclaim(Player player, String lotCode) 
 	{
-		PlayerData playerData = Players.Get(player.getName());
+		PlayerData playerData = Players.get(player.getName());
 		Lot lot;
 		boolean isLotOwned = false;
 		
@@ -234,11 +234,11 @@ public class LotCommands
 		}
 		
 		// All checks have succeeded - reset the lot owner
-		RageMod.Database.lotUnclaim(lot);
+		RageMod.database.lotUnclaim(lot);
 		
 		// Update the playerData
 		playerData.lots.remove(lot);
-		Players.Update(playerData);
+		Players.update(playerData);
 		
 		// Update Lots to remove the owner
 		lot.owner = "";
@@ -249,7 +249,7 @@ public class LotCommands
 
 	public static void list(Player player) 
 	{
-		PlayerData playerData = Players.Get(player.getName());
+		PlayerData playerData = Players.get(player.getName());
 		
 		// Make sure the player actually owns lots
 		if( playerData.lots.size() == 0 )

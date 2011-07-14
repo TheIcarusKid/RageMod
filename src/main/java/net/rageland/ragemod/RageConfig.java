@@ -32,6 +32,9 @@ public class RageConfig {
     public static int Town_MAX_LEVEL_NEUTRAL = 4;
     public static int Town_MAXLEVEL_FACTION = 5;
     public static int Town_DISTANCE_BETWEEN_BEDS = 6;
+    public static double Town_UPKEEP_PER_PLAYER = 1.00;
+    public static int Town_MAX_BANKRUPT_DAYS = 7;
+    
     public static HashMap<Integer, TownLevel> townLevels;
     
     // Zone settings
@@ -65,6 +68,11 @@ public class RageConfig {
     // Faction settings
     public static int Faction_BaseJoinCost = 100;		// Initial cost in coins to join a faction
     public static int Faction_JoinCostIncrease = 10; 	// Amount the join cost will go up due to population imbalance
+    
+    // Task frequencies (in seconds)
+    // 1 hour: 3600
+    // 1 day:  86400
+    public static int Task_TOWN_UPKEEP = 86400;			// Charge taxes for player towns
 
     private static volatile RageConfig instance;
 	
@@ -87,60 +95,60 @@ public class RageConfig {
     	townLevels = new HashMap<Integer, TownLevel>();
     	
     	TownLevel townLevel = new TownLevel();
-    	townLevel.Level = 1;
-    	townLevel.Name = "Settlement";
-    	townLevel.Size = 80;
-    	townLevel.InitialCost = 1000;
-    	townLevel.UpkeepCost = 5;
-    	townLevel.MinimumBalance = 100;
-    	townLevel.MaxResidents = 5;
-    	townLevel.MaxNPCs = 1;
-    	townLevel.sanctumFloor = buildSanctumFloor(townLevel.Level);
+    	townLevel.level = 1;
+    	townLevel.name = "Settlement";
+    	townLevel.size = 80;
+    	townLevel.initialCost = 1000;
+    	townLevel.upkeepCost = 5;
+    	townLevel.minimumBalance = 100;
+    	townLevel.maxResidents = 5;
+    	townLevel.maxNPCs = 1;
+    	townLevel.sanctumFloor = buildSanctumFloor(townLevel.level);
     	townLevels.put(1, townLevel);
     	
     	townLevel = new TownLevel();
-    	townLevel.Level = 2;
-    	townLevel.Name = "Village";
-    	townLevel.Size = 120;
-    	townLevel.InitialCost = 2000;
-    	townLevel.UpkeepCost = 10;
-    	townLevel.MinimumBalance = 200;
-    	townLevel.MaxResidents = 10;
-    	townLevel.MaxNPCs = 2;
+    	townLevel.level = 2;
+    	townLevel.name = "Village";
+    	townLevel.size = 120;
+    	townLevel.initialCost = 2000;
+    	townLevel.upkeepCost = 10;
+    	townLevel.minimumBalance = 200;
+    	townLevel.maxResidents = 10;
+    	townLevel.maxNPCs = 2;
     	townLevels.put(2, townLevel);
     	
     	townLevel = new TownLevel();
-    	townLevel.Level = 3;
-    	townLevel.Name = "Town";
-    	townLevel.Size = 180;
-    	townLevel.InitialCost = 3000;
-    	townLevel.UpkeepCost = 15;
-    	townLevel.MinimumBalance = 300;
-    	townLevel.MaxResidents = 15;
-    	townLevel.MaxNPCs = 3;
+    	townLevel.level = 3;
+    	townLevel.name = "Town";
+    	townLevel.size = 180;
+    	townLevel.initialCost = 3000;
+    	townLevel.upkeepCost = 15;
+    	townLevel.minimumBalance = 300;
+    	townLevel.maxResidents = 15;
+    	townLevel.maxNPCs = 3;
     	townLevels.put(3, townLevel);
     	
     	townLevel = new TownLevel();
-    	townLevel.Level = 4;
-    	townLevel.Name = "City";
-    	townLevel.Size = 270;
-    	townLevel.InitialCost = 5000;
-    	townLevel.UpkeepCost = 25;
-    	townLevel.MinimumBalance = 500;
-    	townLevel.MaxResidents = 25;
-    	townLevel.MaxNPCs = 4;
+    	townLevel.level = 4;
+    	townLevel.name = "City";
+    	townLevel.size = 270;
+    	townLevel.initialCost = 5000;
+    	townLevel.upkeepCost = 25;
+    	townLevel.minimumBalance = 500;
+    	townLevel.maxResidents = 25;
+    	townLevel.maxNPCs = 4;
     	townLevels.put(4, townLevel);
     	
     	townLevel = new TownLevel();
-    	townLevel.Level = 5;
-    	townLevel.Name = "Capitol";
-    	townLevel.Size = 400;
-    	townLevel.InitialCost = 10000;
-    	townLevel.UpkeepCost = 50;
-    	townLevel.MinimumBalance = 1000;
-    	townLevel.MaxResidents = 50;
-    	townLevel.MaxNPCs = 6;
-    	townLevel.IsCapitol = true;
+    	townLevel.level = 5;
+    	townLevel.name = "Capitol";
+    	townLevel.size = 400;
+    	townLevel.initialCost = 10000;
+    	townLevel.upkeepCost = 50;
+    	townLevel.minimumBalance = 1000;
+    	townLevel.maxResidents = 50;
+    	townLevel.maxNPCs = 6;
+    	townLevel.isCapitol = true;
     	townLevels.put(5, townLevel);
     }
     

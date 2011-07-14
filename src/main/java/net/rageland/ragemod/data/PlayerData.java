@@ -49,6 +49,7 @@ public class PlayerData
 	// Town info
 	public String townName;
 	public boolean isMayor;
+	public double treasuryBalance;
 	
 	// World capitol city lots
 	public ArrayList<Lot> lots = new ArrayList<Lot>();

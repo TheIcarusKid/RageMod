@@ -30,7 +30,7 @@ public class PlayerTowns {
 	// On startup, pull all the PlayerTown data from the DB into memory 
 	public void loadPlayerTowns()
 	{
-		towns = RageMod.Database.loadPlayerTowns();	
+		towns = RageMod.database.loadPlayerTowns();	
 	}
 	
 	// Insert/update town info

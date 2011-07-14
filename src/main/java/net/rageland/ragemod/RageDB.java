@@ -4,6 +4,10 @@ package net.rageland.ragemod;
 
 // TODO: Prevent null pointer exception when database not found (!)
 
+// TODO: Consider refactoring the player and town update code into a few generic update methods.
+//		 When Players.update() is called, add the update to a queue.
+//		 Every minute or so, process all the updates.  This would keep multiple updates from going to the database multiple times.
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.sql.Date;
@@ -93,7 +97,7 @@ public class RageDB {
         	preparedStatement = conn.prepareStatement(
 				"SELECT pt.ID_PlayerTown, pt.TownName, pt.XCoord, pt.ZCoord, " +
 				"	pt.TownLevel, " +
-				"	IFNULL(f.ID_Faction, 0) as ID_Faction, pt.TreasuryBalance, pt.BankruptDate, p.Name AS Mayor " +
+				"	IFNULL(f.ID_Faction, 0) as ID_Faction, pt.TreasuryBalance, pt.MinimumBalance, pt.BankruptDate, p.Name AS Mayor " +
 				"FROM PlayerTowns pt " +
 				"LEFT JOIN Factions f ON pt.ID_Faction = f.ID_Faction " +
 				"INNER JOIN Players p ON pt.ID_PlayerTown = p.ID_PlayerTown " +
@@ -109,7 +113,8 @@ public class RageDB {
         		currentTown.centerPoint = new Location2D(rs.getInt("XCoord"), rs.getInt("ZCoord"));
         		currentTown.id_Faction = rs.getInt("ID_Faction");
         		currentTown.treasuryBalance = rs.getFloat("TreasuryBalance");
-        		currentTown.bankruptDate = rs.getDate("BankruptDate");
+        		currentTown.minimumBalance = rs.getFloat("MinimumBalance");
+        		currentTown.bankruptDate = rs.getTimestamp("BankruptDate");
         		currentTown.townLevel = RageConfig.townLevels.get(rs.getInt("TownLevel"));
         		currentTown.mayor = rs.getString("Mayor");
         		currentTown.world = plugin.getServer().getWorld("world");
@@ -253,6 +258,11 @@ public class RageDB {
 		
 		playerData.lots = getLots(playerData.id_Player);
 		
+		if( playerData.townName.equals("") )
+			playerData.treasuryBalance = 0;
+		else
+			playerData.treasuryBalance = getPlayerTreasuryBalance(playerData.id_Player, PlayerTowns.get(playerData.townName).id_PlayerTown);
+		
     	return playerData;
 	}
 	
@@ -277,7 +287,7 @@ public class RageDB {
         	}
         		        	
     	} catch (SQLException e) {
-    		System.out.println("Error in RageDB.PlayerFetch(): " + e.getMessage());
+    		System.out.println("Error in RageDB.getLots(): " + e.getMessage());
 		    System.out.println("SQLState: " + e.getSQLState());
 		    System.out.println("VendorError: " + e.getErrorCode());
 		} finally {
@@ -285,6 +295,33 @@ public class RageDB {
 		}
     	
     	return playerLots;
+	}
+	
+	// Return the result of the player's transaction history with their current town
+	public double getPlayerTreasuryBalance(int id_Player, int id_PlayerTown)
+	{
+		ResultSet rs = null;    
+	
+    	try
+    	{
+        	String selectQuery = 
+        		"SELECT SUM(Amount) as Amount FROM TreasuryTransactions WHERE ID_Player = " + id_Player + " AND ID_PlayerTown = " + id_PlayerTown;
+    		
+    		preparedStatement = conn.prepareStatement(selectQuery);	        		        	
+        	rs = preparedStatement.executeQuery();
+        	
+            rs.next();
+        	return rs.getDouble("Amount");	
+        		        	
+    	} catch (SQLException e) {
+    		System.out.println("Error in RageDB.getPlayerTreasuryBalance(): " + e.getMessage());
+		    System.out.println("SQLState: " + e.getSQLState());
+		    System.out.println("VendorError: " + e.getErrorCode());
+		} finally {
+			close();
+		}
+    	
+    	return -1;
 	}
 	
 	// Update the database with the player data stored in memory (skips town info)
@@ -349,7 +386,7 @@ public class RageDB {
 	// Load data from Players table on login if existing player - create new row if not 
 	public void townAdd(String targetPlayerName, String townName)
     {
-		PlayerData playerData = Players.Get(targetPlayerName);
+		PlayerData playerData = Players.get(targetPlayerName);
 		
     	try
     	{
@@ -374,7 +411,7 @@ public class RageDB {
 	public int townCreate(Player player, String townName)
     {
 		ResultSet rs = null;   
-		PlayerData playerData = Players.Get(player.getName());
+		PlayerData playerData = Players.get(player.getName());
 		
     	try
     	{
@@ -384,7 +421,7 @@ public class RageDB {
     				"INSERT INTO PlayerTowns (TownName, XCoord, ZCoord, ID_Faction, TreasuryBalance, TownLevel, DateCreated) " +
     				"VALUES ('" + townName + "', " + (int)player.getLocation().getX() + ", " + (int)player.getLocation().getZ() + ", " +  
     				"(SELECT ID_Faction FROM Players WHERE ID_Player = " + playerData.id_Player + "), " + 
-    				RageConfig.townLevels.get(1).MinimumBalance + ", 1, NOW())",
+    				RageConfig.townLevels.get(1).minimumBalance + ", 1, NOW())",
     				Statement.RETURN_GENERATED_KEYS);        		
     		preparedStatement.executeUpdate();
     		
@@ -416,7 +453,7 @@ public class RageDB {
 	// Reset the player's town affiliation - used by both Leave and Evict
 	public void townLeave(String playerName)
     { 
-		PlayerData playerData = Players.Get(playerName);
+		PlayerData playerData = Players.get(playerName);
 		
     	try
     	{
@@ -686,6 +723,99 @@ public class RageDB {
 		}
 		
 		return null;
+	}
+
+	// Add money to town treasury
+	public void townDeposit(int id_PlayerTown, int id_Player, double amount) 
+	{
+		try
+    	{
+    		// Update the treasury balance
+    		preparedStatement = conn.prepareStatement(
+    				"UPDATE PlayerTowns SET TreasuryBalance = (TreasuryBalance + " + amount + ") WHERE ID_PlayerTown = " + id_PlayerTown);
+    		preparedStatement.executeUpdate();	
+    		
+    		// Record the player's deposit
+    		preparedStatement = conn.prepareStatement(
+    				"INSERT INTO TreasuryTransactions (ID_PlayerTown, ID_Player, Amount, Timestamp) VALUES (" +
+    				id_PlayerTown + ", " + id_Player + ", " + amount + ", NOW() )");
+    		preparedStatement.executeUpdate();	
+    	} 
+    	catch (SQLException e) {
+    		System.out.println("Error in RageDB.townDeposit(): " + e.getMessage());
+		    System.out.println("SQLState: " + e.getSQLState());
+		    System.out.println("VendorError: " + e.getErrorCode());
+		} finally {
+			close();
+		}
+		
+	}
+
+	// Set minimum balance
+	public void townSetMinimumBalance(int id_PlayerTown, double amount) 
+	{
+		try
+    	{
+    		// Update the treasury balance
+    		preparedStatement = conn.prepareStatement(
+    				"UPDATE PlayerTowns SET MinimumBalance = " + amount + " WHERE ID_PlayerTown = " + id_PlayerTown);
+    		preparedStatement.executeUpdate();	
+    	} 
+    	catch (SQLException e) {
+    		System.out.println("Error in RageDB.townSetMinimumBalance(): " + e.getMessage());
+		    System.out.println("SQLState: " + e.getSQLState());
+		    System.out.println("VendorError: " + e.getErrorCode());
+		} finally {
+			close();
+		}
+		
+	}
+
+	// Load the latest ran task times for all tasks
+	public HashMap<String, Timestamp> loadTaskTimes() 
+	{
+		HashMap<String, Timestamp> tasks = new HashMap<String, Timestamp>();
+		
+		try
+    	{
+        	preparedStatement = conn.prepareStatement("SELECT Name, MAX(Timestamp) as Timestamp FROM Tasks GROUP BY Name");
+        		
+        	rs = preparedStatement.executeQuery();
+        	while ( rs.next() ) 
+        	{
+        		tasks.put(rs.getString("Name"), rs.getTimestamp("Timestamp"));       		
+        	}
+        	
+        	return tasks;
+    	} 
+		catch (Exception e) {
+    		System.out.println("Error in RageDB.getRecentDonations(): " + e.getMessage());
+		} finally {
+			close();
+		}
+		
+		return null;
+	}
+
+	// Log a task as complete in the database
+	public void setComplete(String taskName) 
+	{
+		try
+    	{
+    		preparedStatement = conn.prepareStatement(
+    				"INSERT INTO Tasks (Name, Timestamp) VALUES ('" + taskName + "',NOW())");
+    		preparedStatement.executeUpdate();	
+    	} 
+    	catch (SQLException e) {
+    		System.out.println("Error in RageDB.townDeposit(): " + e.getMessage());
+		    System.out.println("SQLState: " + e.getSQLState());
+		    System.out.println("VendorError: " + e.getErrorCode());
+		} finally {
+			close();
+		}
+		
+		
+		
 	}
 
 

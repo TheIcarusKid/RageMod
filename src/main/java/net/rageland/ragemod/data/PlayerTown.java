@@ -1,5 +1,6 @@
 package net.rageland.ragemod.data;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 import org.bukkit.Location;
@@ -21,8 +22,9 @@ public class PlayerTown implements Comparable<PlayerTown> {
 	public String townName;
 	public Location2D centerPoint;
 	public int id_Faction;
-	public float treasuryBalance;
-	public Date bankruptDate;
+	public double treasuryBalance;
+	public double minimumBalance;
+	public Timestamp bankruptDate;
 	public String mayor;					// Name of mayor
 		
 	public TownLevel townLevel;				// Corresponds to the HashMap TownLevels in Config
@@ -58,7 +60,7 @@ public class PlayerTown implements Comparable<PlayerTown> {
 	// Implementing Comparable for sorting purposes
 	public int compareTo(PlayerTown otherTown)
 	{
-		return otherTown.townLevel.Level - this.townLevel.Level;
+		return otherTown.townLevel.level - this.townLevel.level;
 	}
 	
 	// Comparison
@@ -70,30 +72,30 @@ public class PlayerTown implements Comparable<PlayerTown> {
 	// Creates the region
 	public void buildRegion()
 	{
-		region = new Region2D(centerPoint.getX() - (townLevel.Size / 2), centerPoint.getZ() + (townLevel.Size / 2),
-							  centerPoint.getX() + (townLevel.Size / 2), centerPoint.getZ() - (townLevel.Size / 2));
+		region = new Region2D(centerPoint.getX() - (townLevel.size / 2), centerPoint.getZ() + (townLevel.size / 2),
+							  centerPoint.getX() + (townLevel.size / 2), centerPoint.getZ() - (townLevel.size / 2));
 	}
 	
 	// Checks to see whether the town is already at maximum level; used by /townupgrade
 	public boolean isAtMaxLevel()
 	{
 		if( id_Faction == 0 )
-			return townLevel.Level >= RageConfig.Town_MAX_LEVEL_NEUTRAL;
+			return townLevel.level >= RageConfig.Town_MAX_LEVEL_NEUTRAL;
 		else
-			return townLevel.Level >= RageConfig.Town_MAXLEVEL_FACTION;
+			return townLevel.level >= RageConfig.Town_MAXLEVEL_FACTION;
 	}
 	
 	public boolean isCapitol()
 	{
-		return RageConfig.townLevels.get(townLevel).IsCapitol;
+		return RageConfig.townLevels.get(townLevel).isCapitol;
 	}
 
 	// Checks to see if the town already has its maximum number of residents
 	public boolean isFull() 
 	{
-		int numberOfResidents = RageMod.Database.countResidents(townName);
+		int numberOfResidents = RageMod.database.countResidents(townName);
 		
-		return numberOfResidents >= townLevel.MaxResidents;
+		return numberOfResidents >= townLevel.maxResidents;
 	}
 	
 	// Returns all of the info for the current level

@@ -11,7 +11,7 @@ public class Players {
 	
 	private static HashMap<String, PlayerData> players = new HashMap<String, PlayerData>();
 	
-    public static Players GetInstance() 
+    public static Players getInstance() 
     {
 		if (instance == null) 
 		{
@@ -22,28 +22,28 @@ public class Players {
     
     // Retrieves the player's data from memory and updates last login time
     // Creates a new Player record if one does not exist
-    public static PlayerData PlayerLogin(String playerName)
+    public static PlayerData playerLogin(String playerName)
     {
-    	PlayerData playerData = RageMod.Database.playerLogin(playerName);
+    	PlayerData playerData = RageMod.database.playerLogin(playerName);
     	players.put(playerName, playerData);
     	
     	return playerData;
     }
     
     // Gets the player from memory, or pulls from DB if not present.  Returns NULL for non-existent players
-    public static PlayerData Get(String playerName)
+    public static PlayerData get(String playerName)
     {       	
     	if( players.containsKey(playerName) )
     		return players.get(playerName);
     	else
     	{
     		System.out.println("DB fetch called for player: " + playerName);
-    		return RageMod.Database.playerFetch(playerName);
+    		return RageMod.database.playerFetch(playerName);
     	}
     }
     
     // Updates the player's info in memory
-    public static void Update(PlayerData playerData)
+    public static void update(PlayerData playerData)
     {
     	if( players.containsKey(playerData.name) )
     	{

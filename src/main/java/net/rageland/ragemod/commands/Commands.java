@@ -26,8 +26,8 @@ public class Commands
 	// /home [player_name]
 	public static void home(Player player, String targetPlayerName) 
 	{
-		PlayerData playerData = Players.Get(player.getName());
-		PlayerData targetPlayerData = Players.Get(targetPlayerName);
+		PlayerData playerData = Players.get(player.getName());
+		PlayerData targetPlayerData = Players.get(targetPlayerName);
 		Timestamp now = new Timestamp(new Date().getTime());
 		Location destination;
 		
@@ -73,15 +73,15 @@ public class Commands
 		destination = new Location(player.getServer().getWorld("world"), targetPlayerData.home_X + .5, targetPlayerData.home_Y, targetPlayerData.home_Z + .5 );
 		player.teleport(destination);
 		playerData.home_LastUsed = now;
-		Players.Update(playerData);
-		RageMod.Database.updatePlayer(playerData);
+		Players.update(playerData);
+		RageMod.database.updatePlayer(playerData);
 	}
 	
 	// /spawn [player_name]
 	public static void spawn(Player player, String targetPlayerName) 
 	{
-		PlayerData playerData = Players.Get(player.getName());
-		PlayerData targetPlayerData = Players.Get(targetPlayerName);
+		PlayerData playerData = Players.get(player.getName());
+		PlayerData targetPlayerData = Players.get(targetPlayerName);
 		Timestamp now = new Timestamp(new Date().getTime());
 		Location destination;
 		
@@ -118,8 +118,8 @@ public class Commands
 		player.sendMessage("Teleporting...");
 		player.teleport(destination);
 		playerData.spawn_LastUsed = now;
-		Players.Update(playerData);
-		RageMod.Database.updatePlayer(playerData);
+		Players.update(playerData);
+		RageMod.database.updatePlayer(playerData);
 	}
 	
 	
