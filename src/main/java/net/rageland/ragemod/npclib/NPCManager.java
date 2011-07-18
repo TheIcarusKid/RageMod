@@ -39,7 +39,8 @@ public class NPCManager {
         taskid = plugin.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, new Runnable() {
             public void run() {
                 HashSet<String> toRemove = new HashSet<String>();
-                for (String i : npcs.keySet()) {
+                for (String i : npcs.keySet())
+                {
                     Entity j = npcs.get(i);
                     j.R();
                     if (j.dead) {
@@ -57,8 +58,10 @@ public class NPCManager {
     
     private class SL extends ServerListener {
         @Override
-        public void onPluginDisable(PluginDisableEvent event) {
-            if (event.getPlugin() == plugin) {
+        public void onPluginDisable(PluginDisableEvent event) 
+        {
+            if (event.getPlugin() == plugin) 
+            {
                 despawnAll();
                 plugin.getServer().getScheduler().cancelTask(taskid);
             }
@@ -67,11 +70,18 @@ public class NPCManager {
     
     private class WL extends WorldListener {
         @Override
-        public void onChunkLoad(ChunkLoadEvent event) {
-            for (NPCEntity npc : npcs.values()) {
-                if (npc != null && event.getChunk() == npc.getBukkitEntity().getLocation().getBlock().getChunk()) {
-                    BWorld world = new BWorld(event.getWorld());
-                    world.getWorldServer().addEntity(npc);
+        public void onChunkLoad(ChunkLoadEvent event) 
+        {
+        	// Custom code for handling on chunk load. Not sure if it works.
+            for (int i = 0; i < event.getChunk().getEntities().length; i++) 
+            {
+                if(event.getChunk().getEntities()[i] instanceof NPCEntity)
+                {
+                	if(npcs.containsValue(((NPCEntity)event.getChunk().getEntities()[i])))
+        			{
+                		BWorld world = new BWorld(event.getWorld());
+                        world.getWorldServer().addEntity((Entity) event.getChunk().getEntities()[i]);
+        			}
                 }
             }
         }
