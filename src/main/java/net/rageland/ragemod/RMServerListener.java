@@ -6,7 +6,6 @@ import org.bukkit.event.server.ServerListener;
 import org.bukkit.plugin.Plugin;
 
 import com.iConomy.iConomy;
-import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 
 public class RMServerListener extends ServerListener {
 
@@ -35,18 +34,7 @@ public class RMServerListener extends ServerListener {
                     System.out.println("RageMod hooked into iConomy.");
                 }
             }
-        }
-//        if(plugin.worldGuard == null) {
-//        	Plugin worldGuard = plugin.getServer().getPluginManager().getPlugin("WorldGuard");
-//        	
-//        	if(worldGuard != null) {
-//        		if(worldGuard.isEnabled() && worldGuard.getClass().getName().equals("com.sk89q.worldguard.bukkit.WorldGuardPlugin")) {
-//        			plugin.worldGuard = (WorldGuardPlugin) worldGuard;
-//        			System.out.println("RageMod hooked into WorldGuard.");
-//        		}
-//        	}
-//        }
-        
+        }        
     } // end onPluginEnable
 	
 }
