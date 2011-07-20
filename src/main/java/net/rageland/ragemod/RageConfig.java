@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 
 import net.rageland.ragemod.data.TownLevel;
 
@@ -55,10 +56,17 @@ public class RageConfig {
     public static int Lot_PRICE_DIAMOND = 40;		// Price for Diamond-level member lot in USD
     
     // Capitol settings
-    public static int Capitol_X1a = -384;			// The NW corner of region A for capitol
-    public static int Capitol_Z1a = 144;
-    public static int Capitol_X2a = 100;			// The SE corner of region A for capitol
-    public static int Capitol_Z2a = -244;
+    public static int Capitol_X1a = -386;			// The NW corner of region A for capitol
+    public static int Capitol_Z1a = 146;
+    public static int Capitol_X2a = -82;			// The SE corner of region A for capitol
+    public static int Capitol_Z2a = -261;
+    public static int Capitol_X1b = -83;			// The NW corner of region B for capitol
+    public static int Capitol_Z1b = 418;
+    public static int Capitol_X2b = 513;			// The SE corner of region B for capitol
+    public static int Capitol_Z2b = -261;
+    public static String Capitol_SANDLOT = "114,60,-19,141,68,-46";		// Auto-regen sand mine
+    public static int Capitol_SANDLOT_GOLD_ODDS = 10;				// Chance (1 / x) of gold spawning in sand mine
+    public static int Capitol_SANDLOT_DIAMOND_ODDS = 100;
     public static String Capitol_Name = "Rage City";
     
     // Cooldowns (in seconds)
@@ -73,6 +81,7 @@ public class RageConfig {
     // 1 hour: 3600
     // 1 day:  86400
     public static int Task_TOWN_UPKEEP = 86400;			// Charge taxes for player towns
+    public static int Task_FILL_SANDLOT = 20;		// Replenish sand in public sand mine
 
     private static volatile RageConfig instance;
 	

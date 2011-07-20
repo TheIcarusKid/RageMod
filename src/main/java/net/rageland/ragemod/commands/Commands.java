@@ -19,7 +19,7 @@ public class Commands
 	// /zone
 	public static void zone(Player player)
 	{
-		player.sendMessage("Your current zone is " + RageZones.getName(player.getLocation()) 
+		Util.message(player, "Your current zone is " + RageZones.getName(player.getLocation()) 
 				+ " and distance from spawn is " + (int)RageZones.getDistanceFromSpawn(player.getLocation()));
 	}
 
@@ -34,21 +34,21 @@ public class Commands
 		// Check to see if target player exists
 		if( targetPlayerData == null )
 		{
-			player.sendMessage("Player " + targetPlayerName + " does not exist.");
+			Util.message(player, "Player " + targetPlayerName + " does not exist.");
 			return;
 		}
 		
 		// Check permissions so only mods and admins can go to another player's home
 		if( targetPlayerData.id_Player != playerData.id_Player && !RageMod.permissionHandler.has(player, "ragemod.referee.inspectspawn") )
 		{
-			player.sendMessage("Only mods and admins can teleport to other players' home points.");
+			Util.message(player, "Only mods and admins can teleport to other players' home points.");
 			return;
 		}
 		
 		// See if player has an active membership
 		if( !playerData.isMember )
 		{
-			player.sendMessage("Only active Rageland members can use /home.");
+			Util.message(player, "Only active Rageland members can use /home.");
 			return;
 		}
 		
@@ -58,18 +58,18 @@ public class Commands
 			int secondsSinceLastUse = (int)((now.getTime() - playerData.home_LastUsed.getTime()) / 1000);
 			if( secondsSinceLastUse < RageConfig.Cooldown_Home )
 			{
-				player.sendMessage("Spell '/home' is not ready yet (" + Util.formatCooldown(RageConfig.Cooldown_Home - secondsSinceLastUse) + " left)");
+				Util.message(player, "Spell '/home' is not ready yet (" + Util.formatCooldown(RageConfig.Cooldown_Home - secondsSinceLastUse) + " left)");
 				return;
 			}
 		}
 		// Make sure the player has set a home
 		if( !targetPlayerData.home_IsSet )			
 		{
-			player.sendMessage("You have not yet set a /home (place a bed inside your lot).");
+			Util.message(player, "You have not yet set a /home (place a bed inside your lot).");
 			return;
 		}
 		
-		player.sendMessage("Teleporting...");
+		Util.message(player, "Teleporting...");
 		destination = new Location(player.getServer().getWorld("world"), targetPlayerData.home_X + .5, targetPlayerData.home_Y, targetPlayerData.home_Z + .5 );
 		player.teleport(destination);
 		playerData.home_LastUsed = now;
@@ -88,14 +88,14 @@ public class Commands
 		// Check to see if target player exists
 		if( targetPlayerData == null )
 		{
-			player.sendMessage("Player " + targetPlayerName + " does not exist.");
+			Util.message(player, "Player " + targetPlayerName + " does not exist.");
 			return;
 		}
 		
 		// Check permissions so only mods and admins can go to another player's spawn
 		if( targetPlayerData.id_Player != playerData.id_Player && !RageMod.permissionHandler.has(player, "ragemod.referee.inspectspawn") )
 		{
-			player.sendMessage("Only mods and admins can teleport to other players' spawn points.");
+			Util.message(player, "Only mods and admins can teleport to other players' spawn points.");
 			return;
 		}
 		
@@ -105,7 +105,7 @@ public class Commands
 			int secondsSinceLastUse = (int)((now.getTime() - playerData.spawn_LastUsed.getTime()) / 1000);
 			if( secondsSinceLastUse < RageConfig.Cooldown_Spawn )
 			{
-				player.sendMessage("Spell '/spawn' is not ready yet (" + Util.formatCooldown(RageConfig.Cooldown_Spawn - secondsSinceLastUse) + " left)");
+				Util.message(player, "Spell '/spawn' is not ready yet (" + Util.formatCooldown(RageConfig.Cooldown_Spawn - secondsSinceLastUse) + " left)");
 				return;
 			}
 		}
@@ -115,7 +115,7 @@ public class Commands
 		else
 			destination = player.getWorld().getSpawnLocation();
 		
-		player.sendMessage("Teleporting...");
+		Util.message(player, "Teleporting...");
 		player.teleport(destination);
 		playerData.spawn_LastUsed = now;
 		Players.update(playerData);

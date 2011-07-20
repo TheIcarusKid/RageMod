@@ -1,5 +1,6 @@
 package net.rageland.ragemod.commands;
 
+import net.rageland.ragemod.Util;
 import net.rageland.ragemod.data.Lot;
 import net.rageland.ragemod.data.Lots;
 import net.rageland.ragemod.data.PlayerTown;
@@ -18,19 +19,19 @@ public class CompassCommands
 		// lot will be null if code is invalid
 		if( lot == null )
 		{	
-			player.sendMessage(lotCode + " is not a valid lot code.  (consult the online map)");
+			Util.message(player, lotCode + " is not a valid lot code.  (consult the online map)");
 			return;
 		}
 		
 		player.setCompassTarget(lot.getCenter());
-		player.sendMessage("Compass target set to lot " + lot.getLotCode() + ".");
+		Util.message(player, "Compass target set to lot " + lot.getLotCode() + ".");
 	}
 
 	// /compass spawn
 	public static void spawn(Player player) 
 	{
 		player.setCompassTarget(player.getServer().getWorld("world").getSpawnLocation());
-		player.sendMessage("Compass target set to world spawn.");
+		Util.message(player, "Compass target set to world spawn.");
 	}
 
 	// /compass town <town_name>
@@ -41,12 +42,12 @@ public class CompassCommands
 		// Check to see if specified town exists
 		if( playerTown == null )
 		{
-			player.sendMessage("The town '" + townName + "' does not exist.");
+			Util.message(player, "The town '" + townName + "' does not exist.");
 			return;
 		}
 		
 		player.setCompassTarget(playerTown.getCenter());
-		player.sendMessage("Compass target set to " + playerTown.townName + ".");
+		Util.message(player, "Compass target set to " + playerTown.townName + ".");
 		
 	}
 

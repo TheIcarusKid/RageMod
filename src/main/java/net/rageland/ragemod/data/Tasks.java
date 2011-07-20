@@ -1,20 +1,29 @@
 package net.rageland.ragemod.data;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Random;
+
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 
 import com.iConomy.iConomy;
 import com.iConomy.system.Holdings;
 
 import net.rageland.ragemod.RageConfig;
 import net.rageland.ragemod.RageMod;
+import net.rageland.ragemod.RageZones;
 import net.rageland.ragemod.Util;
 
+// TODO: Use the bukkit scheduler - the current method will not work with java.Timer
 
 public class Tasks {
 	
-	// Set up PlayerTowns as a static instance
+	// Set up Tasks as a static instance
 	private static volatile Tasks instance;
 	
 	private static HashMap<String, Timestamp> tasks;
@@ -127,12 +136,47 @@ public class Tasks {
 				// TODO: Set bankrupt date null
 			}
 			
-			PlayerTowns.put(town);
-			
-			
+			PlayerTowns.put(town);	
+		}
+	}
+
+	// Fill a specified area with sand for a public mine
+	public static void processFillSandlot(RageMod plugin) 
+	{
+		World world = plugin.getServer().getWorld("world");
+		Random random = new Random();
+		
+		System.out.println("Refilling sand lot...");
+		
+		// Look for players who are currently in the area and evacuate them
+		for( Player player : plugin.getServer().getOnlinePlayers() )
+		{
+			if( RageZones.isInSandlot(player.getLocation()) )
+			{
+				Util.message(player, "Automatically refilling sand lot - get out of the way!");
+				player.teleport(world.getSpawnLocation());
+			}
 		}
 		
-
+		Block currentBlock;
+		
+		for( int x = (int)RageZones.Capitol_SandLot.nwCorner.getX(); x <= (int)RageZones.Capitol_SandLot.seCorner.getX(); x++ )
+		{
+			for( int y = (int)RageZones.Capitol_SandLot.nwCorner.getY(); y <= (int)RageZones.Capitol_SandLot.seCorner.getY(); y++ )
+			{
+				for( int z = (int)RageZones.Capitol_SandLot.nwCorner.getZ(); z >= (int)RageZones.Capitol_SandLot.seCorner.getZ(); z-- )
+				{
+					currentBlock = world.getBlockAt(x, y, z);
+					if( random.nextInt( RageConfig.Capitol_SANDLOT_GOLD_ODDS ) == 0 )
+						currentBlock.setType(Material.GOLD_ORE);
+					else if( random.nextInt( RageConfig.Capitol_SANDLOT_DIAMOND_ODDS ) == 0 ) 
+						currentBlock.setType(Material.DIAMOND_ORE);
+					else
+						currentBlock.setType(Material.SAND);
+				}
+			}
+		}
+		
 	}
 	
 	

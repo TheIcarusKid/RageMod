@@ -51,8 +51,9 @@ public class PlayerData
 	public boolean isMayor;
 	public double treasuryBalance;
 	
-	// World capitol city lots
+	// Lot info
 	public ArrayList<Lot> lots = new ArrayList<Lot>();
+	public ArrayList<String> lotPermissions = new ArrayList<String>();	// array of player names allowed to build
 	
 	
 	// ***** STATE (Non-DB) VALUES *****

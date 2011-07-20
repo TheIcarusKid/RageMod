@@ -8,6 +8,7 @@ import net.rageland.ragemod.RageConfig;
 import net.rageland.ragemod.RageMod;
 import net.rageland.ragemod.RageZones;
 import net.rageland.ragemod.RageZones.Action;
+import net.rageland.ragemod.Util;
 import net.rageland.ragemod.data.Factions;
 import net.rageland.ragemod.data.Location2D;
 import net.rageland.ragemod.data.PlayerData;
@@ -38,30 +39,30 @@ public class TownCommands
 		// Check to see if target player exists
 		if( targetPlayerData == null )
 		{
-			player.sendMessage("Player " + targetPlayerName + " does not exist.");
+			Util.message(player, "Player " + targetPlayerName + " does not exist.");
 			return;
 		}
 		// Ensure that the current player is the mayor
 		if( !playerData.isMayor )
 		{
-			player.sendMessage("Only town mayors can use '/town add'.");
+			Util.message(player, "Only town mayors can use '/town add'.");
 			return;
 		}		
 		// Ensure that the target player is not currently a resident of a town
 		if( !targetPlayerData.townName.equals("") )
 		{
-			player.sendMessage(targetPlayerName + " is already a resident of '" + targetPlayerData.townName + "'.");
+			Util.message(player, targetPlayerName + " is already a resident of '" + targetPlayerData.townName + "'.");
 			return;
 		}		
 		// Ensure that the target player is the same faction as the mayor
 		if( playerData.id_Faction != targetPlayerData.id_Faction )
 		{
-			player.sendMessage("You can only add players that are the same faction as you.");
+			Util.message(player, "You can only add players that are the same faction as you.");
 			return;
 		}
 		if( PlayerTowns.get(playerData.townName).isFull() )
 		{
-			player.sendMessage("Your town already has the maximum number of residents for its level.");
+			Util.message(player, "Your town already has the maximum number of residents for its level.");
 			return;
 		}
 		
@@ -74,7 +75,7 @@ public class TownCommands
 		targetPlayerData.treasuryBalance = RageMod.database.getPlayerTreasuryBalance(targetPlayerData.id_Player, PlayerTowns.get(playerData.townName).id_PlayerTown);
 		Players.update(targetPlayerData);
 		
-		player.sendMessage(targetPlayerName + " is now a resident of " + playerData.townName + ".");		
+		Util.message(player, targetPlayerData.name + " is now a resident of " + playerData.townName + ".");		
 	}
 	
 	// /town  create <town_name>
@@ -88,19 +89,19 @@ public class TownCommands
 		// Ensure that the player is not currently a resident of a town
 		if( !playerData.townName.equals("") )
 		{
-			player.sendMessage("You are already a resident of '" + playerData.townName + "'; you must use '/town leave' before you can create a new town.");
+			Util.message(player, "You are already a resident of '" + playerData.townName + "'; you must use '/town leave' before you can create a new town.");
 			return;
 		}		
 		// Ensure that the town name is not taken
 		if( PlayerTowns.get(townName) != null )
 		{
-			player.sendMessage("A town named " + townName + " already exists!");
+			Util.message(player, "A town named " + townName + " already exists!");
 			return;
 		}
 		// Ensure that the current zone is allowed to create towns
 		if( !RageZones.checkPermission(player.getLocation(), Action.TOWN_CREATE) )
 		{
-			player.sendMessage("You cannot create a town in this zone.");
+			Util.message(player, "You cannot create a town in this zone.");
 			return;
 		}
 		// Check for any towns that are too close to the current point - list all
@@ -111,14 +112,14 @@ public class TownCommands
 			{
 				message += nearbyTownName + " (" + nearbyTowns.get(nearbyTownName) + "m) ";
 			}
-			player.sendMessage(message);
-			player.sendMessage("Towns must be a minimum distance of " + RageConfig.Town_MIN_DISTANCE_BETWEEN + "m apart.");
+			Util.message(player, message);
+			Util.message(player, "Towns must be a minimum distance of " + RageConfig.Town_MIN_DISTANCE_BETWEEN + "m apart.");
 			return;
 		}
 		// Check to see if the player has enough money to join the specified faction
 		if( !holdings.hasEnough(cost) )
 		{
-			player.sendMessage("You need at least " + iConomy.format(cost) + " to create a " + RageConfig.townLevels.get(1).name + ".");
+			Util.message(player, "You need at least " + iConomy.format(cost) + " to create a " + RageConfig.townLevels.get(1).name + ".");
 			return;
 		}
 		
@@ -158,11 +159,11 @@ public class TownCommands
 			playerData.treasuryBalance = cost;
 			Players.update(playerData);
 			
-			player.sendMessage("Congratulations, you are the new mayor of " + townName + "!");		
+			Util.message(player, "Congratulations, you are the new mayor of " + townName + "!");		
 		}
 		else
 		{
-			player.sendMessage("This location is valid for a new town - to create one, type '/town create <town_name>'");
+			Util.message(player, "This location is valid for a new town - to create one, type '/town create <town_name>'");
 		}
 	}
 	
@@ -177,7 +178,7 @@ public class TownCommands
 		// Make sure the player is a resident of a town
 		if( playerData.townName.equals("") )
 		{
-			player.sendMessage("Only town residents can use the deposit command.");
+			Util.message(player, "Only town residents can use the deposit command.");
 			return;
 		}
 		// Ensure that the typed amount is a valid number
@@ -187,19 +188,19 @@ public class TownCommands
 		}
 		catch( Exception ex )
 		{
-			player.sendMessage("Invalid amount.");
+			Util.message(player, "Invalid amount.");
 			return;
 		}
 		// Ensure that the amount is greater than 0 (no sneaky withdrawls!)
 		if( amount <= 0 )
 		{
-			player.sendMessage("Invalid amount.");
+			Util.message(player, "Invalid amount.");
 			return;	
 		}
 		// Make sure the player has enough money to make the deposit
 		if( !holdings.hasEnough(amount) )
 		{
-			player.sendMessage("You only have " + iConomy.format(holdings.balance()) + ".");
+			Util.message(player, "You only have " + iConomy.format(holdings.balance()) + ".");
 			return;
 		}
 		
@@ -217,7 +218,7 @@ public class TownCommands
 		playerData.treasuryBalance += amount;
 		Players.update(playerData);
 		
-		player.sendMessage("Deposited " + iConomy.format(amount) + " into town treasury.");
+		Util.message(player, "Deposited " + iConomy.format(amount) + " into town treasury.");
 	}
 	
 	// /town evict <player_name>
@@ -229,19 +230,19 @@ public class TownCommands
 		// Ensure that the current player is the mayor
 		if( !playerData.isMayor )
 		{
-			player.sendMessage("Only town mayors can use /town evict.");
+			Util.message(player, "Only town mayors can use /town evict.");
 			return;
 		}	
 		// Check to see if target player exists
 		if( targetPlayerData == null )
 		{
-			player.sendMessage("Player " + targetPlayerName + " does not exist.");
+			Util.message(player, "Player " + targetPlayerName + " does not exist.");
 			return;
 		}	
 		// Ensure that the target player is a resident of the mayor's town
 		if( !targetPlayerData.townName.equals(playerData.townName) )
 		{
-			player.sendMessage(targetPlayerName + " is not a resident of " + playerData.townName + ".");
+			Util.message(player, targetPlayerName + " is not a resident of " + playerData.townName + ".");
 			return;
 		}
 		
@@ -253,7 +254,7 @@ public class TownCommands
 		targetPlayerData.spawn_IsSet = false;
 		Players.update(targetPlayerData);
 		
-		player.sendMessage(targetPlayerName + " is no longer a resident of " + playerData.townName + ".");		
+		Util.message(player, targetPlayerData.name + " is no longer a resident of " + playerData.townName + ".");		
 	}
 	
 	// /town info [town_name]
@@ -265,19 +266,19 @@ public class TownCommands
 		// Check to see if specified town exists
 		if( playerTown == null )
 		{
-			player.sendMessage("The town '" + townName + "' does not exist.");
+			Util.message(player, "The town '" + townName + "' does not exist.");
 			return;
 		}
 		
-		player.sendMessage("Info for " + townName + ":");
-		player.sendMessage("   Faction: " + Factions.getName(playerTown.id_Faction));
-		player.sendMessage("   Level: " + playerTown.getLevel().name + " (" + playerTown.townLevel.level + ")");
-		player.sendMessage("   Mayor: " + playerTown.mayor);
+		Util.message(player, "Info for " + townName + ":");
+		Util.message(player, "   Faction: " + Factions.getName(playerTown.id_Faction));
+		Util.message(player, "   Level: " + playerTown.getLevel().name + " (" + playerTown.townLevel.level + ")");
+		Util.message(player, "   Mayor: " + playerTown.mayor);
 		if( playerData.townName.equalsIgnoreCase(townName) )
 		{
-			player.sendMessage("   Total Balance: " + iConomy.format(playerTown.treasuryBalance));
-			player.sendMessage("   Minimum Balance:  " + iConomy.format(playerTown.minimumBalance));
-			player.sendMessage("   Your Balance:  " + iConomy.format(playerData.treasuryBalance));
+			Util.message(player, "   Total Balance: " + iConomy.format(playerTown.treasuryBalance));
+			Util.message(player, "   Minimum Balance:  " + iConomy.format(playerTown.minimumBalance));
+			Util.message(player, "   Your Balance:  " + iConomy.format(playerData.treasuryBalance));
 		}
 	}
 	
@@ -290,13 +291,13 @@ public class TownCommands
 		// Ensure that the player is currently a resident of a town
 		if( townName.equals("") )
 		{
-			player.sendMessage("You do not have a town to leave.");
+			Util.message(player, "You do not have a town to leave.");
 			return;
 		}		
 		// Ensure that the player is not the mayor
 		if( playerData.isMayor )
 		{
-			player.sendMessage("Town mayors cannot use '/town leave'; contact an admin to shut down your town.");
+			Util.message(player, "Town mayors cannot use '/town leave'; contact an admin to shut down your town.");
 			return;
 		}
 		
@@ -310,7 +311,7 @@ public class TownCommands
 		playerData.treasuryBalance = 0;
 		Players.update(playerData);
 		
-		player.sendMessage("You are no longer a resident of " + townName + ".");		
+		Util.message(player, "You are no longer a resident of " + townName + ".");		
 	}
 	
 	// /town list [faction]
@@ -326,14 +327,14 @@ public class TownCommands
 		Collections.sort(towns);
 		
 		if( factionName.equals("") )
-			player.sendMessage("List of all towns: (" + towns.size() + ")");
+			Util.message(player, "List of all towns: (" + towns.size() + ")");
 		else
-			player.sendMessage("List of all towns for " + factionName + " faction:");
+			Util.message(player, "List of all towns for " + factionName + " faction:");
 		
 		for( PlayerTown town : towns )
 		{
 			if( Factions.getName(town.id_Faction).equalsIgnoreCase(factionName) || factionName.equals("") )
-				player.sendMessage(Factions.getName(town.id_Faction) + ": " + town.townName + " (" + town.getLevel().name + ")");
+				Util.message(player, Factions.getName(town.id_Faction) + ": " + town.townName + " (" + town.getLevel().name + ")");
 		}
 	}
 	
@@ -348,13 +349,13 @@ public class TownCommands
 		// Make sure the player is a resident of a town
 		if( playerData.townName.equals("") )
 		{
-			player.sendMessage("Only town residents can use the deposit command.");
+			Util.message(player, "Only town residents can use the deposit command.");
 			return;
 		}
 		// Ensure that the current player is the mayor
 		if( !playerData.isMayor )
 		{
-			player.sendMessage("Only town mayors can use /town minimum.");
+			Util.message(player, "Only town mayors can use /town minimum.");
 			return;
 		}	
 		// Ensure that the typed amount is a valid number
@@ -364,19 +365,19 @@ public class TownCommands
 		}
 		catch( Exception ex )
 		{
-			player.sendMessage("Invalid amount.");
+			Util.message(player, "Invalid amount.");
 			return;
 		}
 		// Ensure that the amount is greater than 0
 		if( amount <= 0 )
 		{
-			player.sendMessage("Invalid amount.");
+			Util.message(player, "Invalid amount.");
 			return;	
 		}
 		// Make sure the amount is not lower than the server-defined minimum balances
 		if( amount < playerTown.townLevel.minimumBalance )
 		{
-			player.sendMessage("The lowest minimum balance allowed for a " + playerTown.townLevel.name + " is " + 
+			Util.message(player, "The lowest minimum balance allowed for a " + playerTown.townLevel.name + " is " + 
 								iConomy.format(playerTown.townLevel.minimumBalance) + ".");
 			return;
 		}
@@ -388,7 +389,7 @@ public class TownCommands
 		playerTown.minimumBalance = amount; 
 		PlayerTowns.put(playerTown);
 		
-		player.sendMessage("Your town's treasury minimum balance is now " + iConomy.format(amount) + ".");
+		Util.message(player, "Your town's treasury minimum balance is now " + iConomy.format(amount) + ".");
 	}
 	
 	// /town residents [town_name]
@@ -400,11 +401,11 @@ public class TownCommands
 		// Check to see if specified town exists
 		if( playerTown == null )
 		{
-			player.sendMessage("The town '" + townName + "' does not exist.");
+			Util.message(player, "The town '" + townName + "' does not exist.");
 			return;
 		}
 		
-		player.sendMessage("Residents of " + playerTown.townName + ":");
+		Util.message(player, "Residents of " + playerTown.townName + ":");
 		
 		ArrayList<String> residents = RageMod.database.listTownResidents(townName);
 		
@@ -412,12 +413,12 @@ public class TownCommands
 		{
 			if( isMayor )
 			{
-				player.sendMessage("   " + resident + " (mayor)");
+				Util.message(player, "   " + resident + " (mayor)");
 				isMayor = false;
 			}
 			else
 			{
-				player.sendMessage("   " + resident);
+				Util.message(player, "   " + resident);
 			}
 		}
 	}
@@ -431,13 +432,13 @@ public class TownCommands
 		// Ensure that the current player is the mayor
 		if( !playerData.isMayor )
 		{
-			player.sendMessage("Only town mayors can use '/town upgrade'.");
+			Util.message(player, "Only town mayors can use '/town upgrade'.");
 			return;
 		}
 		// Ensure that the town is not at its maximum level
 		if( playerTown.isAtMaxLevel() )
 		{
-			player.sendMessage("Your town is already at its maximum level.");
+			Util.message(player, "Your town is already at its maximum level.");
 			return;
 		}
 		
@@ -450,20 +451,20 @@ public class TownCommands
 			// ...check to see if the player's faction already has a capitol...
 			if( PlayerTowns.doesFactionCapitolExist(playerData.id_Faction) )
 			{
-				player.sendMessage("Your faction already has a capitol; your town cannot be upgraded further.");
+				Util.message(player, "Your faction already has a capitol; your town cannot be upgraded further.");
 				return;
 			}
 			// ...and make sure it is not too close to enemy capitols.
 			if( PlayerTowns.areEnemyCapitolsTooClose(playerTown) )
 			{
-				player.sendMessage("Your town is ineligible to be your faction's capitol; it is too close to an enemy capitol.");
+				Util.message(player, "Your town is ineligible to be your faction's capitol; it is too close to an enemy capitol.");
 				return;
 			}
 		}
 		// Check treasury balance
 		if( playerTown.treasuryBalance < targetLevel.initialCost )
 		{
-			player.sendMessage("You need at least " + iConomy.format(targetLevel.initialCost) + " in your treasury to upgrade your town to a " + targetLevel.name + ".");
+			Util.message(player, "You need at least " + iConomy.format(targetLevel.initialCost) + " in your treasury to upgrade your town to a " + targetLevel.name + ".");
 			return;
 		}
 		
@@ -480,12 +481,12 @@ public class TownCommands
 			
 			RageMod.database.townUpgrade(playerTown.townName, (targetLevel.initialCost - targetLevel.minimumBalance));
 			
-			player.sendMessage("Congratulations, " + playerTown.townName + " has been upgraded to a " + targetLevel.name + "!");
-			player.sendMessage(iConomy.format(targetLevel.initialCost) + " has been deducted from the town treasury.");
+			Util.message(player, "Congratulations, " + playerTown.townName + " has been upgraded to a " + targetLevel.name + "!");
+			Util.message(player, iConomy.format(targetLevel.initialCost) + " has been deducted from the town treasury.");
 		}
 		else
 		{
-			player.sendMessage("Your town is ready to be upgraded to a " + targetLevel.name + "; type '/town upgrade confirm' to complete the upgrade.");
+			Util.message(player, "Your town is ready to be upgraded to a " + targetLevel.name + "; type '/town upgrade confirm' to complete the upgrade.");
 		}
 		
 	}
@@ -501,7 +502,7 @@ public class TownCommands
 		// Make sure the player is a resident of a town
 		if( playerData.townName.equals("") )
 		{
-			player.sendMessage("Only town residents can use the deposit command.");
+			Util.message(player, "Only town residents can use the deposit command.");
 			return;
 		}
 		// Ensure that the typed amount is a valid number
@@ -511,25 +512,25 @@ public class TownCommands
 		}
 		catch( Exception ex )
 		{
-			player.sendMessage("Invalid amount.");
+			Util.message(player, "Invalid amount.");
 			return;
 		}
 		// Ensure that the amount is greater than 0
 		if( amount <= 0 )
 		{
-			player.sendMessage("Invalid amount.");
+			Util.message(player, "Invalid amount.");
 			return;	
 		}
 		// Make sure the player has a high enough balance to make the withdrawl
 		if( playerData.treasuryBalance < amount )
 		{
-			player.sendMessage("You only have " + iConomy.format(playerData.treasuryBalance) + " in the treasury.");
+			Util.message(player, "You only have " + iConomy.format(playerData.treasuryBalance) + " in the treasury.");
 			return;
 		}
 		// Make sure the withdrawl wouldn't put the town below its minimum balance
 		if( playerTown.treasuryBalance - amount < playerTown.minimumBalance )
 		{
-			player.sendMessage("This transaction would put the town below its minimum balance.");
+			Util.message(player, "This transaction would put the town below its minimum balance.");
 			return;
 		}
 		
@@ -547,7 +548,7 @@ public class TownCommands
 		playerData.treasuryBalance -= amount;
 		Players.update(playerData);
 		
-		player.sendMessage("Withdrew " + iConomy.format(amount) + " from town treasury.");
+		Util.message(player, "Withdrew " + iConomy.format(amount) + " from town treasury.");
 	}
 	
 	

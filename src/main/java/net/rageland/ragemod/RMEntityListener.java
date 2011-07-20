@@ -51,7 +51,7 @@ public class RMEntityListener extends EntityListener
 			if( attackerData.id_Faction == defenderData.id_Faction )
 			{
 				event.setCancelled(true);
-    			attacker.sendMessage(defenderData.name + " is your ally!");
+    			Util.message(attacker, defenderData.name + " is your ally!");
     			return;
 			}
         	
@@ -63,7 +63,7 @@ public class RMEntityListener extends EntityListener
         		if( RageZones.isInCapitol(defender.getLocation()) )
         		{
         			event.setCancelled(true);
-        			attacker.sendMessage("PvP is not allowed inside " + RageConfig.Capitol_Name + ".");
+        			Util.message(attacker, "PvP is not allowed inside " + RageConfig.Capitol_Name + ".");
         			return;
         		}
         		else
@@ -72,13 +72,13 @@ public class RMEntityListener extends EntityListener
         			if( defenderData.id_Faction == 0 )
         			{
         				event.setCancelled(true);
-            			attacker.sendMessage("You cannot attack neutral players in " + RageConfig.Zone_NAME_A + ".");
+            			Util.message(attacker, "You cannot attack neutral players in " + RageConfig.Zone_NAME_A + ".");
             			return;
         			}
         			else if( attackerData.id_Faction == 0 )
         			{
         				event.setCancelled(true);
-            			attacker.sendMessage("Neutral players cannot attack in " + RageConfig.Zone_NAME_A + ".");
+            			Util.message(attacker, "Neutral players cannot attack in " + RageConfig.Zone_NAME_A + ".");
             			return;
         			}
         		}
@@ -92,14 +92,14 @@ public class RMEntityListener extends EntityListener
         		if( RageMod.permissionHandler.has(attacker, "ragemod.referee.blockpvp") )
         		{
         			event.setCancelled(true);
-        			attacker.sendMessage("Referees may not participate in combat.");
+        			Util.message(attacker, "Referees may not participate in combat.");
         			return;
         		}
         		// Protect referees 
         		else if( RageMod.permissionHandler.has(defender, "ragemod.referee.blockpvp") )
         		{
         			event.setCancelled(true);
-        			attacker.sendMessage("You cannot harm a referee.");
+        			Util.message(attacker, "You cannot harm a referee.");
         			return;
         		}
         		// Handle combat inside of towns
@@ -109,21 +109,21 @@ public class RMEntityListener extends EntityListener
 	        		if( defenderData.id_Faction == 0 )
 	        		{
 	        			event.setCancelled(true);
-	        			attacker.sendMessage("You cannot harm neutral players inside of towns.");
+	        			Util.message(attacker, "You cannot harm neutral players inside of towns.");
 	        			return;
 	        		}
 	        		// Keep neutral players from harming any players
 	        		if( attackerData.id_Faction == 0 )
 	        		{
 	        			event.setCancelled(true);
-	        			attacker.sendMessage("Neutral players cannot attack inside of towns.");
+	        			Util.message(attacker, "Neutral players cannot attack inside of towns.");
 	        			return;
 	        		}
 	        		// Protect faction players inside of their own and allied towns
 	        		if( defenderData.id_Faction == playerTown.id_Faction )
 	        		{
 	        			event.setCancelled(true);
-	        			attacker.sendMessage("You cannot harm " + Factions.getName(defenderData.id_Faction) + " inside of their own towns.");
+	        			Util.message(attacker, "You cannot harm " + Factions.getName(defenderData.id_Faction) + " inside of their own towns.");
 	        			return;
 	        		}
         		}

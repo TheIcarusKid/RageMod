@@ -2,8 +2,10 @@ package net.rageland.ragemod;
 
 import net.rageland.ragemod.data.Location2D;
 import net.rageland.ragemod.data.Region2D;
+import net.rageland.ragemod.data.Region3D;
 
 import org.bukkit.Location;
+import org.bukkit.World;
 
 // TODO: Calculate locations with y = 64  >_<
 
@@ -17,9 +19,13 @@ public class RageZones {
     public static String ZoneC_Name;
     public static int ZoneC_Border;
     
+    public static World world;
     public static Location2D WorldSpawn;
     
-    public static Region2D Capitol_RegionA;
+    private static Region2D Capitol_RegionA;
+    private static Region2D Capitol_RegionB;
+    
+    public static Region3D Capitol_SandLot;
     
 	public enum Action {
 		TOWN_CREATE;
@@ -37,6 +43,9 @@ public class RageZones {
     
     public RageZones (RageMod ragemod)
     {
+    	plugin = ragemod;
+    	world = plugin.getServer().getWorld("world");
+    	
     	// TODO: This feels redundant.  Maybe it will make more sense when the config is loading from a file.
     	ZoneA_Name = RageConfig.Zone_NAME_A;
     	ZoneA_Border = RageConfig.Zone_BORDER_A;
@@ -47,10 +56,11 @@ public class RageZones {
     	
     	// Load the capitol regions
     	Capitol_RegionA = new Region2D(RageConfig.Capitol_X1a, RageConfig.Capitol_Z1a, RageConfig.Capitol_X2a, RageConfig.Capitol_Z2a);
+    	Capitol_RegionB = new Region2D(RageConfig.Capitol_X1b, RageConfig.Capitol_Z1b, RageConfig.Capitol_X2b, RageConfig.Capitol_Z2b);
+    	Capitol_SandLot = new Region3D(world, RageConfig.Capitol_SANDLOT);
     	
-    	plugin = ragemod;
+    	WorldSpawn = new Location2D(world.getSpawnLocation());
     	
-    	WorldSpawn = new Location2D(plugin.getServer().getWorld("world").getSpawnLocation());
     }
     
     // Returns the name of the zone the Location is currently in
@@ -129,7 +139,7 @@ public class RageZones {
     // Returns whether the player is in the world capitol
     public static boolean isInCapitol(Location location)
     {
-    	return ( Capitol_RegionA.isInside(location) );
+    	return ( Capitol_RegionA.isInside(location) || Capitol_RegionB.isInside(location) );
     }
     
     // Checks whether a specified action is allowed in the zone specified by 'location'
@@ -142,6 +152,12 @@ public class RageZones {
     	
     	// If we haven't recognized the action, return false.  Should this throw an exception?
     	return false;
+    }
+  
+    // Checks to see whether the location is inside the sand lot
+    public static boolean isInSandlot(Location location)
+    {
+    	return ( Capitol_SandLot.isInside(location) );
     }
     
 

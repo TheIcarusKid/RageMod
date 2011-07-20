@@ -16,10 +16,12 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockCanBuildEvent;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockEvent;
 import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.SignChangeEvent;
 
 /**
  * RageMod block listener
@@ -64,7 +66,7 @@ public class RMBlockListener extends BlockListener
 					if( lot.canSetHome() && lot.isInside(block.getLocation()) )
 					{
 						playerData.clearHome();
-		    			player.sendMessage("You no longer have a home point.");
+		    			Util.message(player, "You no longer have a home point.");
 		    			// Update both memory and database
 		    			Players.update(playerData);
 		    			RageMod.database.updatePlayer(playerData);
@@ -79,7 +81,7 @@ public class RMBlockListener extends BlockListener
 	    		if( playerTown != null && playerTown.townName.equals(playerData.townName) )
 	    		{
 	    			playerData.clearSpawn();
-	    			player.sendMessage("You no longer have a spawn point.");
+	    			Util.message(player, "You no longer have a spawn point.");
 	    			// Update both memory and database
 	    			Players.update(playerData);
 	    			RageMod.database.updatePlayer(playerData);
@@ -119,12 +121,12 @@ public class RMBlockListener extends BlockListener
 					{
 						if( playerData.home_IsSet )
 						{
-							player.sendMessage("You already have a bed inside your lot.");
+							Util.message(player, "You already have a bed inside your lot.");
 							event.setCancelled(true);
 							return;
 						}
 						playerData.setHome(block.getLocation());
-		    			player.sendMessage("Your home location has now been set.");
+		    			Util.message(player, "Your home location has now been set.");
 		    			// Update both memory and database
 		    			Players.update(playerData);
 		    			RageMod.database.updatePlayer(playerData);
@@ -140,7 +142,7 @@ public class RMBlockListener extends BlockListener
 	    		{
 	    			if( playerData.spawn_IsSet )
 					{
-						player.sendMessage("You already have a bed inside your town.");
+						Util.message(player, "You already have a bed inside your town.");
 						event.setCancelled(true);
 						return;
 					}
@@ -151,14 +153,14 @@ public class RMBlockListener extends BlockListener
 	    			{
 	    				if( block.getLocation().distance(spawns.get(resident)) < RageConfig.Town_DISTANCE_BETWEEN_BEDS && !resident.equals(playerData.name) )
 	    				{
-	    					player.sendMessage("This bed is too close to " + resident + "'s bed - spawn not set.");
+	    					Util.message(player, "This bed is too close to " + resident + "'s bed - spawn not set.");
 	    					event.setCancelled(true);
 	    					return;
 	    				}
 	    			}
 	    			
 	    			playerData.setSpawn(block.getLocation());
-	    			player.sendMessage("Your spawn location has now been set.");
+	    			Util.message(player, "Your spawn location has now been set.");
 	    			// Update both memory and database
 	    			Players.update(playerData);
 	    			RageMod.database.updatePlayer(playerData);
@@ -179,18 +181,25 @@ public class RMBlockListener extends BlockListener
     	if( RageZones.isInZoneA(location) && RageZones.isInCapitol(location) )
     	{
     		// See if the player is inside a lot, and if they own it
-    		if( !playerData.isInsideLot(location) && !RageMod.permissionHandler.has(player, "ragemod.build.capitol") )
+    		if( !playerData.isInsideLot(location) && !RageMod.permissionHandler.has(player, "ragemod.build.anylot") )
     		{
     			Lot lot = Lots.findCurrentLot(location);
     			
-    			if( lot == null )
-    				player.sendMessage("You don't have permission to edit city infrastructure.");
+    			if( lot == null && !RageMod.permissionHandler.has(player, "ragemod.build.capitol") )
+    				Util.message(player, "You don't have permission to edit city infrastructure.");
     			else
     			{
     				if( lot.owner.equals("") )
-    					player.sendMessage("You cannot edit unclaimed lots.");
+    					Util.message(player, "You cannot edit unclaimed lots.");
     				else
-    					player.sendMessage("This lot is owned by " + lot.owner + ".");
+    				{
+    					// Check to see if the player has permission to build in this lot
+    					PlayerData ownerData = Players.get(lot.owner);
+    					if( !ownerData.lotPermissions.contains(playerData.name) )
+    						Util.message(player, "This lot is owned by " + lot.owner + ".");
+    					else
+    						return true;
+    				}
     			}
     			
     			return false;
@@ -204,7 +213,7 @@ public class RMBlockListener extends BlockListener
     		// Players can only build inside their own towns
     		if( playerTown != null && !playerTown.townName.equals(playerData.townName) && !RageMod.permissionHandler.has(player, "ragemod.build.anytown") )
     		{
-    			player.sendMessage("You can only build inside of your own town.");
+    			Util.message(player, "You can only build inside of your own town.");
     			return false;
     		}
     	}

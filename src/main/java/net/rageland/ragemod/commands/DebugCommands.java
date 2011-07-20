@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import net.rageland.ragemod.RageConfig;
 import net.rageland.ragemod.RageMod;
+import net.rageland.ragemod.Util;
 import net.rageland.ragemod.data.Factions;
 import net.rageland.ragemod.data.PlayerData;
 import net.rageland.ragemod.data.Players;
@@ -23,7 +24,7 @@ public class DebugCommands
 		PlayerData playerData = Players.get(player.getName());
 		int donation = RageMod.database.getRecentDonations(playerData.id_Player);
 		
-		player.sendMessage("The database records you with a total donation of $" + donation + " in the last month.");
+		Util.message(player, "The database records you with a total donation of $" + donation + " in the last month.");
 	}
 
 	public static void sanctum(Player player, String levelString) 
@@ -38,13 +39,13 @@ public class DebugCommands
 		}
 		catch( Exception ex )
 		{
-			player.sendMessage("Invalid level.");
+			Util.message(player, "Invalid level.");
 			return;
 		}
 		
 		if( level < 1 || level > 5 )
 		{
-			player.sendMessage("Invalid level.");
+			Util.message(player, "Invalid level.");
 			return;
 		}
 		

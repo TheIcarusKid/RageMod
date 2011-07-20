@@ -25,7 +25,7 @@ public class Players {
     public static PlayerData playerLogin(String playerName)
     {
     	PlayerData playerData = RageMod.database.playerLogin(playerName);
-    	players.put(playerName, playerData);
+    	players.put(playerName.toLowerCase(), playerData);
     	
     	return playerData;
     }
@@ -33,25 +33,32 @@ public class Players {
     // Gets the player from memory, or pulls from DB if not present.  Returns NULL for non-existent players
     public static PlayerData get(String playerName)
     {       	
-    	if( players.containsKey(playerName) )
-    		return players.get(playerName);
+    	if( players.containsKey(playerName.toLowerCase()) )
+    		return players.get(playerName.toLowerCase());
     	else
     	{
     		System.out.println("DB fetch called for player: " + playerName);
-    		return RageMod.database.playerFetch(playerName);
+    		PlayerData playerData = RageMod.database.playerFetch(playerName);
+    		if( playerData == null )
+    			return null;
+    		else
+    		{
+    			players.put(playerName.toLowerCase(), playerData);
+    			return playerData;
+    		}
     	}
     }
     
     // Updates the player's info in memory
     public static void update(PlayerData playerData)
     {
-    	if( players.containsKey(playerData.name) )
+    	if( players.containsKey(playerData.name.toLowerCase()) )
     	{
-    		players.put(playerData.name, playerData);
+    		players.put(playerData.name.toLowerCase(), playerData);
     	}
     	else
     	{
-    		System.out.println("Players.Put called on invalid value: " + playerData.name);
+    		System.out.println("Players.update called on invalid value: " + playerData.name);
     	}
     }
     

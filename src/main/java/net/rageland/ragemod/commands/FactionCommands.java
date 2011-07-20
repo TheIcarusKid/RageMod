@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 import net.rageland.ragemod.RageConfig;
 import net.rageland.ragemod.RageMod;
+import net.rageland.ragemod.Util;
 import net.rageland.ragemod.data.Factions;
 import net.rageland.ragemod.data.PlayerData;
 import net.rageland.ragemod.data.Players;
@@ -29,7 +30,7 @@ public class FactionCommands
 		// Ensure the player is not already a member of a faction
 		if( playerData.id_Faction != 0 )
 		{
-			player.sendMessage("You are already a member of a faction.");
+			Util.message(player, "You are already a member of a faction.");
 			return;
 		}
 		
@@ -49,10 +50,10 @@ public class FactionCommands
 		// If the player did not type a faction name, return the cost to join each faction
 		if( factionName.equals("") )
 		{
-			player.sendMessage("Current costs to join each faction (based on population):");
+			Util.message(player, "Current costs to join each faction (based on population):");
 			for( int faction : populations.keySet() )
 			{
-				player.sendMessage("   " + Factions.getName(faction) + ": " + iConomy.format(populations.get(faction)));
+				Util.message(player, "   " + Factions.getName(faction) + ": " + iConomy.format(populations.get(faction)));
 			}
 			return;
 		}
@@ -60,13 +61,13 @@ public class FactionCommands
 		id_Faction = Factions.getID(factionName);
 		if( id_Faction == 0 )
 		{
-			player.sendMessage("Faction '" + factionName + "' does not exist.");
+			Util.message(player, "Faction '" + factionName + "' does not exist.");
 			return;
 		}
 		// Check to see if the player has enough money to join the specified faction
 		if( !balance.hasEnough(populations.get(id_Faction)) )
 		{
-			player.sendMessage("You need at least " + iConomy.format(populations.get(id_Faction)) + " to join the " + Factions.getName(id_Faction) + " faction.");
+			Util.message(player, "You need at least " + iConomy.format(populations.get(id_Faction)) + " to join the " + Factions.getName(id_Faction) + " faction.");
 			return;
 		}
 		
@@ -78,7 +79,7 @@ public class FactionCommands
 		Players.update(playerData);
 		RageMod.database.updatePlayer(playerData);
 		
-		player.sendMessage("Congratulations, you are now a member of the " + Factions.getName(id_Faction) + " faction!");
+		Util.message(player, "Congratulations, you are now a member of the " + Factions.getName(id_Faction) + " faction!");
 	}
 	
 	// /faction leave
@@ -89,20 +90,20 @@ public class FactionCommands
 		// Ensure the player is a member of a faction
 		if( playerData.id_Faction == 0 )
 		{
-			player.sendMessage("You are not a member of a faction.");
+			Util.message(player, "You are not a member of a faction.");
 			return;
 		}
 		
 		// See if the player typed "confirm" or not
 		if( !isConfirmed )
 		{
-			player.sendMessage("Are you sure?  You will need to pay the join fee again if you change your mind.");
-			player.sendMessage("Type /faction leave confirm to leave your faction.");
+			Util.message(player, "Are you sure?  You will need to pay the join fee again if you change your mind.");
+			Util.message(player, "Type /faction leave confirm to leave your faction.");
 		}
 		else
 		{
 			// Reset the player's faction
-			player.sendMessage("You are no longer a member of the " + Factions.getName(playerData.id_Faction) + " faction.");
+			Util.message(player, "You are no longer a member of the " + Factions.getName(playerData.id_Faction) + " faction.");
 			playerData.id_Faction = 0;
 			Players.update(playerData);
 			RageMod.database.updatePlayer(playerData);
@@ -114,10 +115,10 @@ public class FactionCommands
 	{
 		HashMap<Integer, Integer> populations = RageMod.database.getFactionPopulations();
 		
-		player.sendMessage("Current faction populations (excluding inactive players):");
+		Util.message(player, "Current faction populations (excluding inactive players):");
 		for( int faction : populations.keySet() )
 		{
-			player.sendMessage("   " + Factions.getName(faction) + ": " + populations.get(faction) + " players");
+			Util.message(player, "   " + Factions.getName(faction) + ": " + populations.get(faction) + " players");
 		}
 	}
 

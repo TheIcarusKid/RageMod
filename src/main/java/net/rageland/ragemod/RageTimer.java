@@ -27,10 +27,16 @@ public class RageTimer extends TimerTask
 				Tasks.processTownUpkeeps();
 				Tasks.setComplete("TOWN_UPKEEP");
 			}
+			
 				
 			
 		}
 		
+		if( Tasks.getSeconds("FILL_SANDLOT") > RageConfig.Task_FILL_SANDLOT )
+		{
+			Tasks.processFillSandlot(plugin);
+			Tasks.setComplete("FILL_SANDLOT");
+		}
 		
 		
 		// Increment/reset the second hand

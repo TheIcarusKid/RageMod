@@ -256,12 +256,13 @@ public class RageDB {
 		playerData.spawn_Z = rs.getInt("Spawn_ZCoord");
 		playerData.spawn_LastUsed = rs.getTimestamp("Spawn_LastUsed");
 		
-		playerData.lots = getLots(playerData.id_Player);
+		playerData.lots = this.getLots(playerData.id_Player);
+		playerData.lotPermissions = this.getLotPermissions(playerData.id_Player);
 		
 		if( playerData.townName.equals("") )
 			playerData.treasuryBalance = 0;
 		else
-			playerData.treasuryBalance = getPlayerTreasuryBalance(playerData.id_Player, PlayerTowns.get(playerData.townName).id_PlayerTown);
+			playerData.treasuryBalance = this.getPlayerTreasuryBalance(playerData.id_Player, PlayerTowns.get(playerData.townName).id_PlayerTown);
 		
     	return playerData;
 	}
@@ -322,6 +323,39 @@ public class RageDB {
 		}
     	
     	return -1;
+	}
+	
+	// Return all players who are allowed to build in the player's lots
+	public ArrayList<String> getLotPermissions(int id_Player)
+	{
+		ResultSet rs = null; 
+		ArrayList<String> lotPermissions = new ArrayList<String>();
+	
+    	try
+    	{
+        	String selectQuery = 
+        		"SELECT p.Name as Name FROM LotPermissions lp " +
+        		"INNER JOIN Players p ON p.ID_Player = lp.ID_Player_Builder " +
+        		"WHERE lp.ID_Player_Owner = " + id_Player;
+    		
+    		preparedStatement = conn.prepareStatement(selectQuery);	        		        	
+        	rs = preparedStatement.executeQuery();
+        	
+            while( rs.next() )
+        	{
+        		lotPermissions.add(rs.getString("Name"));	
+        	}
+            return lotPermissions;
+        		        	
+    	} catch (SQLException e) {
+    		System.out.println("Error in RageDB.getPlayerTreasuryBalance(): " + e.getMessage());
+		    System.out.println("SQLState: " + e.getSQLState());
+		    System.out.println("VendorError: " + e.getErrorCode());
+		} finally {
+			close();
+		}
+    	
+    	return null;
 	}
 	
 	// Update the database with the player data stored in memory (skips town info)
@@ -459,7 +493,7 @@ public class RageDB {
     	{
     		// Update the Players table to remove the town association
     		preparedStatement = conn.prepareStatement(
-    				"UPDATE Players SET ID_PlayerTown = NULL, IsMayor = 0, Spawn_IsSet = 0 WHERE ID_Player = " + playerData.id_Player);
+    				"UPDATE Players SET ID_PlayerTown = NULL, IsMayor = 0, Spawn_XCoord = NULL, Spawn_YCoord = NULL, Spawn_ZCoord = NULL WHERE ID_Player = " + playerData.id_Player);
     		preparedStatement.executeUpdate();	
     	} 
     	catch (SQLException e) {
@@ -501,7 +535,7 @@ public class RageDB {
     	try
     	{
     		preparedStatement = conn.prepareStatement(
-    				"SELECT COUNT ID_Player FROM Players WHERE ID_PlayerTown = " + playerTown.id_PlayerTown);
+    				"SELECT COUNT(ID_Player) FROM Players WHERE ID_PlayerTown = " + playerTown.id_PlayerTown);
     		rs = preparedStatement.executeQuery();
     		rs.next();
     		return rs.getInt(1);
@@ -789,7 +823,7 @@ public class RageDB {
         	return tasks;
     	} 
 		catch (Exception e) {
-    		System.out.println("Error in RageDB.getRecentDonations(): " + e.getMessage());
+    		System.out.println("Error in RageDB.loadTaskTimes(): " + e.getMessage());
 		} finally {
 			close();
 		}
@@ -807,14 +841,58 @@ public class RageDB {
     		preparedStatement.executeUpdate();	
     	} 
     	catch (SQLException e) {
-    		System.out.println("Error in RageDB.townDeposit(): " + e.getMessage());
+    		System.out.println("Error in RageDB.setComplete(): " + e.getMessage());
 		    System.out.println("SQLState: " + e.getSQLState());
 		    System.out.println("VendorError: " + e.getErrorCode());
 		} finally {
 			close();
-		}
-		
-		
+		}	
+	}
+
+	// Sets permission for collaborative lot building
+	public void lotAllow(int id_Player_Owner, int id_Player_Builder) 
+	{
+		try
+    	{
+    		preparedStatement = conn.prepareStatement(
+    				"INSERT INTO LotPermissions (ID_Player_Owner, ID_Player_Builder) VALUES (" + id_Player_Owner + ", " + id_Player_Builder + ")");
+    		preparedStatement.executeUpdate();	
+    	} 
+    	catch (SQLException e) {
+    		System.out.println("Error in RageDB.lotAllow(): " + e.getMessage());
+		    System.out.println("SQLState: " + e.getSQLState());
+		    System.out.println("VendorError: " + e.getErrorCode());
+		} finally {
+			close();
+		}		
+	}
+
+	// Clears permissions for collaborative lot building
+	public void lotDisallow(int id_Player_Owner, int id_Player_Builder) 
+	{
+		try
+    	{
+    		// An ID of 0 indicates all players
+			if( id_Player_Builder == 0 )
+    		{
+				preparedStatement = conn.prepareStatement(
+	    				"DELETE FROM LotPermissions WHERE ID_Player_Owner = " + id_Player_Owner);
+    		}
+			else
+			{
+				preparedStatement = conn.prepareStatement(
+	    				"DELETE FROM LotPermissions WHERE ID_Player_Owner = " + id_Player_Owner + " AND ID_Player_Builder = " + id_Player_Builder);
+			}
+			
+    		preparedStatement.executeUpdate();	
+    	} 
+    	catch (SQLException e) {
+    		System.out.println("Error in RageDB.lotAllow(): " + e.getMessage());
+		    System.out.println("SQLState: " + e.getSQLState());
+		    System.out.println("VendorError: " + e.getErrorCode());
+		} finally {
+			close();
+		}	
 		
 	}
 
