@@ -61,7 +61,7 @@ public class RageDB {
         }
     }
 
-    public Connection getConnection()
+    public Connection getConnection() throws SQLException
     {
     	return connectionPool.getConnection();
     }
